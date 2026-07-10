@@ -3,15 +3,13 @@
 <package format="3">
   <name>ps11_gazebo</name>
   <version>0.1.0</version>
-  <description>Worlds, seabed models, sim launch, bridge config for Gazebo Harmonic</description>
+  <description>Worlds, models, simulation launch, and bridge configuration for PS11 AUV in Gazebo Harmonic</description>
   <maintainer email="team@newtonbotics.local">Person A</maintainer>
   <license>Apache-2.0</license>
 
-  <depend>rclpy</depend>
-
-  <test_depend>python3-pytest</test_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
