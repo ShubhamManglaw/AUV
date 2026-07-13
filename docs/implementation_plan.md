@@ -2,7 +2,7 @@
 
 **Project:** NewtonBotics · BDTS 2027 NextGen Challenge · PS11 — Edge Computing for Sensors: Reducing Bandwidth for Backhaul
 **Version:** 1.0 · 26 Sep 2026
-**Team:** 2 developers (Person A: simulation, navigation, link · Person B: perception, Jetson, evaluation), assisted by AI coding agents
+**Team:** 1 developer, Shubham (all code, with the ZCode agent) · 2 teammates (vehicle CAD, dataset downloads, Jetson, deck)
 **Audience:** the two developers and their coding agents. Agents must read `AGENTS.md` first, then the section for the task they are assigned.
 
 ---
@@ -806,25 +806,37 @@ All numeric constants in this plan are defaults for these files. **Nodes must no
 
 ## 15. Milestones and tasks
 
-### 15.1 M1 schedule (4 days, 2 people)
+### 15.1 M1 schedule (4 days, one developer + two teammates)
 
-Only the OMEN laptop has the GPU. Plan GPU-heavy work around it: **training runs overnight on Day 1**, and simulator integration happens on the OMEN from Day 2. Person B can write pure-Python code (codec, geometry) on any machine.
+**Dev** = Shubham, who writes all code with the agent, on the OMEN laptop. **Team** = the two teammates, who do the CAD and every task that doesn't need code. The owner letters A/B inside the task cards in §15.2 refer to an earlier two-developer split; **the owners in this table and in `docs/STATUS.md` take precedence.**
 
-| Day | Person A (sim, nav, link) | Person B (perception, Jetson, evaluation) |
+Only the OMEN has the GPU, so **training runs overnight on Day 1**.
+
+| Day | Dev (all code) | Team |
 |---|---|---|
-| **1** | T0.1 repo · T0.2 laptop env · T0.3 interfaces · T1.0 SolidWorks export [HUMAN] · T1.1 URDF conversion · start T1.2 | T2.1 datasets · T5.1 Jetson reflash (in the background) · T3.1 codec · **start T2.2 training before sleeping** |
-| **2** | T1.2 world and sensors · T1.3 sensor models · T1.5 waypoint follower · T3.2 link emulator | T2.3 eval/export · T2.4 underwater effect · T2.5 detector · T2.6 tracker · T5.2 Jetson benchmark |
-| **3** | T1.4 seabed decals · T3.3 scheduler · T3.4 surface decoder · T4.1 bringup | T2.7 geolocator · T2.8 contact_db · T4.2 metrics · decide on T2.9 |
-| **4** | T4.3 Foxglove layout · T4.4 integration · T4.6 recording · T4.7 rehearsal | T4.4 integration · T4.5 experiments and charts · T5.3 Jetson video · T4.7 rehearsal |
+| **1** | T0.2 environment · T0.3 interfaces · T3.1 codec · T3.2 link emulator · T2.1 dataset script · **start T2.2 training before sleeping** | Download TrashCan and DUO from the official sources into `ml/data/raw/` · **T1.0 CAD export tonight** (§7.1 checklist) |
+| **2** | T1.1 URDF conversion · T1.2 world and sensors · T1.3 sensor models · T1.5 waypoint follower · T2.3 eval/export · T2.5 detector · T2.4 only if time | T5.1 Jetson reflash |
+| **3** | T1.4 seabed (demo scenario only) · T2.6 tracker · T2.7 geolocator · T2.8 contact_db · T3.3 scheduler · T3.4 surface decoder · write `jetson/benchmark.sh` for T5.2 | T5.2 run the benchmark script on the Jetson · T5.3 video |
+| **4** | T4.1 bringup · T4.2 metrics · T4.3 Foxglove · T4.4 integration · **T4.6 recording by mid-afternoon** · T4.5 charts from the recorded run · rehearsal in the evening | T4.7 deck: placeholders, slide 10/11 phase status, measured numbers from `results/` and `jetson/results/` · rehearsal |
 
 End-of-day gates:
 
-- **Day 1:** vehicle visible in RViz2 and Gazebo; codec tests pass; training running.
-- **Day 2:** vehicle flies the lawnmower pattern in Gazebo; detector boxes visible on the simulated camera; link emulator unit-tested; Jetson benchmark logged.
-- **Day 3:** full chain runs headless: contacts appear on `/surface/contacts`.
-- **Day 4, midday:** full demo run recorded (bag + screen video). Afternoon is for polish and rehearsal only; no new features after the recording.
+- **Day 1:** codec and emulator tests pass; environment check passes; training running; CAD export received.
+- **Day 2:** vehicle flies the lawnmower in Gazebo; detector boxes visible on the simulated camera. **If detections on the sim camera are poor, decide tonight between T2.4 (underwater effect) and T2.9 (fine-tune on sim frames).**
+- **Day 3:** full chain runs headless: contacts appear on `/surface/contacts`. Jetson benchmark logged.
+- **Day 4, mid-afternoon:** demo run recorded (bag + screen video). After the recording: charts, deck and rehearsal only, no new features.
 
-Estimated effort: about 85–110 agent-assisted hours for M1 across both people. This is tight; use the cut list in §18.2 without hesitation.
+Effort: about 50–60 agent-assisted developer hours. This only fits with the reduced scope below.
+
+**Reduced M1 scope (one developer):**
+
+- **T1.4:** generate the `demo` scenario only. The `eval` scenario is deferred.
+- **T2.4 (underwater effect):** optional; do it on Day 2 only if time allows, or if detections on the sim camera are poor.
+- **T3.3:** the `semantic` policy is required. The `fifo_observations` baseline policy is optional (implement it only if Day 3 has time).
+- **T4.2:** counters and the metrics in §12.2 **except** "GT object in view". Report recall over **all** objects in the scenario and label it that way.
+- **T4.4:** tune and report on the `demo` scenario, and label the results "demo scenario (the scenario the system was tuned on)". This replaces the demo/eval split until the `eval` scenario exists.
+- **T4.5:** H.264 comparison and charts from the recorded `semantic` + `m64` run. The baseline run happens only if `fifo_observations` exists; the `generic_1k` run is deferred.
+- **T5.2:** Dev writes `jetson/benchmark.sh`; Team runs it on the Jetson and commits the logs.
 
 ### 15.2 M1 task cards
 
@@ -1075,16 +1087,19 @@ B · T5.2 · 1 h
 | ROS traffic from other teams on venue Wi-Fi | Low | High | `ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST`, unique `ROS_DOMAIN_ID`, Wi-Fi off. |
 | Judges challenge the bandwidth ratio as trivial | Medium | Medium | Lead with recall, latency and position error (§12.2 framing note); show the H.264 ratio, not the JPEG one. |
 
-### 18.2 Cut list for M1 (cut from the top if behind)
+### 18.2 Cut list for M1
+
+Already cut for the one-developer schedule (§15.1): the `eval` scenario, the `generic_1k` run, the "GT in view" metric, the live FIFO baseline. The underwater effect and the FIFO policy are optional.
+
+If still behind, cut in this order:
 
 1. T5.3 Jetson video (keep the benchmark numbers).
-2. `generic_1k` experiment run (keep the profile in config).
-3. Error-ellipse markers and camera-footprint display.
-4. Live baseline B (keep it as a chart only).
-5. 3D props in the world (decals only).
-6. "GT in view" metric (report recall over all objects instead, and say so).
+2. Error-ellipse markers and the camera-footprint display.
+3. 3D props in the world (decals only).
+4. T4.5 charts (show the live counters and `summary.json` numbers instead).
+5. The Foxglove vehicle-side 3D panel (keep the annotated camera image).
 
-**Never cut:** codec with tests, link emulator, scheduler, surface namespace separation (H1), live counters, the H3 banner, the recorded bag and backup video.
+**Never cut:** codec with tests, link emulator, scheduler (`semantic` policy), surface namespace separation (H1), live counters, the H3 banner, the recorded bag and backup video.
 
 ---
 
