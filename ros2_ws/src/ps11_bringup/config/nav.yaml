@@ -1,0 +1,16 @@
+# Navigation sensor models parameters (§9.2)
+odom_noise:
+  # Horizontal position random walk std grows at 0.5% of distance travelled
+  position_drift_rate: 0.005
+  # Constant heading bias of 0.5 degrees (0.00872665 rad)
+  heading_bias_rad: 0.00872665
+  initial_covariance_pos: 0.01
+  initial_covariance_heading: 0.001
+
+depth_sim:
+  # depth = -z + N(0, 0.02 m)
+  noise_sigma_m: 0.02
+
+range_adapter:
+  min_range_m: 0.2
+  max_range_m: 50.0

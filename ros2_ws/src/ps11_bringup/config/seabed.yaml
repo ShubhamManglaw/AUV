@@ -1,0 +1,26 @@
+# Seabed generator configuration (§8.2)
+seed: 42
+
+pixel_density_px_per_m: 160
+tile_size_m: 20.0
+min_object_spacing_m: 2.0
+
+object_size_ranges_m:
+  debris: [0.4, 1.2]
+  starfish: [0.15, 0.30]
+  sea_urchin: [0.10, 0.20]
+  scallop: [0.08, 0.15]
+
+scenarios:
+  demo:
+    area_x_m: 50.0
+    area_y_m: 30.0
+    num_objects: 12
+    num_debris: 5
+    num_marine_life: 7
+    mission_length_s: 240
+  eval:
+    area_x_m: 100.0
+    area_y_m: 60.0
+    num_objects: 40
+    mission_length_s: 600
