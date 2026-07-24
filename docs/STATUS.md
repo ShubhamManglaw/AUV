@@ -25,7 +25,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T2.7 | Geolocator node | Dev | 3 | todo | T2.6, T1.3 | Ray-to-seabed projection, uncertainty |
 | T2.8 | Contact database node | Dev | 3 | todo | T2.7 | Observation fusion |
 | T2.9 | Contingency: fine-tune on sim frames | Dev | 2–3 | optional | T1.4, T2.5 | Only if sim detections are poor (decide end of Day 2) |
-| T3.1 | Codec | Dev | 1 | todo | T0.3 | 8-byte messages, golden vectors (human review) |
+| T3.1 | Codec | Dev | 1 | in progress — awaiting human review of golden vectors | T0.3 | 8-byte messages, golden vectors (human review) |
 | T3.2 | Link emulator | Dev | 1 | todo | T3.1 | 64 bps, latency, loss; verify M64 packet size |
 | T3.3 | Scheduler | Dev | 3 | todo | T3.2, T2.8 | `semantic` required; `fifo_observations` optional |
 | T3.4 | Surface decoder | Dev | 3 | todo | T3.1 | /link/rx only (H1) |
