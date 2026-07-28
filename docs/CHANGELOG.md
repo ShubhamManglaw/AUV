@@ -19,3 +19,10 @@ All notable changes and interface updates to the PS11-AUV project will be docume
 - Clamping with warning applies strictly to physical values (`x`, `y`, `depth`, `confidence`, `battery`). `pending` saturates at 63 without warning.
 - Explicit round-half-away-from-zero quantization adopted for all coordinate and fraction conversions, avoiding Python banker's rounding edge cases.
 - Relocated golden vectors to `ros2_ws/src/ps11_telemetry/test/golden_vectors.json` and updated test case 5 to valid identifier IDs (`contact_id=255`, `class_id=0`).
+
+## T3.1: golden vectors approved and A4 confirmation
+
+- Marked T3.1 done following human review and approval of golden vectors.
+- Confirmed assumption A4: Water Linked M64 protocol specification confirms 8-byte payload per acoustic packet. Removed `ASSUMPTION` label from `frame_payload_bytes` in plan §11.6 and `link_profiles.yaml` (retained on `loss_prob`).
+- Noted in `link_profiles.yaml` and plan §11.6 label that M64 is discontinued and used as a representative published spec.
+- Added strict AGENTS.md rules requiring `python -m pytest` and terminal copy-pasting of verbatim command output.

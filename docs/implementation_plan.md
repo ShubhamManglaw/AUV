@@ -62,7 +62,7 @@ These rules protect the credibility of the pitch. Violating one is a blocking bu
 | A1 | Coding agent | ZCode (Z.ai) with GLM-5.3. ZCode reads `AGENTS.md` from the project root. Do **not** run `/init` after `AGENTS.md` exists, or it may be overwritten; if you run it, merge its output into the existing file. Run one task per ZCode Goal. | Done |
 | A2 | Pitch date | Pitch in 4 days; M1 must be done by the end of Day 4. | Human |
 | A3 | Thruster layout | Custom industrial frame, N vectored ~60 W thrusters, fully actuated in 6 DOF. N and poses come from the CAD export. | T1.0 |
-| A4 | M64 frame size | 8-byte payload per acoustic packet. **Verify against the Water Linked M64 protocol specification.** If different, change only `link_profiles.yaml` and frame packing (§11.1). | T3.2 |
+| A4 | M64 frame size | 8-byte payload per acoustic packet. Confirmed by Water Linked M64 protocol specification; M64 is discontinued and used as a representative published spec. | Confirmed (T3.2) |
 | A5 | Link loss | 5% random frame loss (not in the datasheet; labelled ASSUMPTION). | Accepted for M1 |
 | A6 | Camera | 640×480 RGB at 10 Hz, 90° horizontal FOV, pitched 45° down, unless the CAD defines otherwise. | T1.0 |
 | A7 | Jetson | Orin Nano 8 GB developer kit, reflashed to JetPack 6.x (Ubuntu 22.04 base). | T5.1 |
@@ -562,9 +562,9 @@ Parameters: `profile` (key in `link_profiles.yaml`), `mode` (`pull` for the sema
 # ps11_bringup/config/link_profiles.yaml
 profiles:
   m64:
-    label: "Water Linked Modem M64 — datasheet: 64 bps net, ~500 ms latency, half-duplex, 200 m range"
+    label: "Water Linked Modem M64 (discontinued, representative published spec) — datasheet: 64 bps net, ~500 ms latency, half-duplex, 200 m range"
     bitrate_bps: 64
-    frame_payload_bytes: 8      # ASSUMPTION — verify against Water Linked protocol spec
+    frame_payload_bytes: 8
     latency_s: 0.5
     loss_prob: 0.05             # ASSUMPTION — not stated in datasheet
     half_duplex: true

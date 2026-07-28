@@ -22,6 +22,7 @@
 ## Code rules
 - Python (`rclpy`) with type hints. C++ only if a node is measured too slow, and only after the human agrees.
 - Pure logic (codec, policy, geometry, fusion) goes in ROS-free modules with `pytest` tests. ROS nodes are thin wrappers.
+- Always run tests with `python -m pytest` (the venv's Python), never bare `pytest`.
 - No hard-coded constants: every number comes from a YAML file in `ps11_bringup/config/`. Class IDs and names come only from `classes.yaml`.
 - All nodes use `use_sim_time: true`.
 - Run `ruff format` and `ruff check` before finishing.
@@ -40,6 +41,7 @@
 
 ## Finishing a task
 - Run every acceptance check in the task card. Paste the exact commands and their output in your final message.
+- Paste command output by copying it from the terminal. Never retype numbers, hex values or results. If output is long, paste the relevant part verbatim and say what you cut.
 - Update `docs/STATUS.md`.
 - Commit with a message starting with the task ID, e.g. `T3.1: codec with golden vectors`.
 - If the plan is ambiguous about an interface, a message field or an honesty rule, stop and ask instead of guessing.

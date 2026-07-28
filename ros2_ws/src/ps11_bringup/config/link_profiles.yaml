@@ -1,9 +1,9 @@
 # Link profiles configuration (§11.6)
 profiles:
   m64:
-    label: "Water Linked Modem M64 — datasheet: 64 bps net, ~500 ms latency, half-duplex, 200 m range"
+    label: "Water Linked Modem M64 (discontinued, representative published spec) — datasheet: 64 bps net, ~500 ms latency, half-duplex, 200 m range"
     bitrate_bps: 64
-    frame_payload_bytes: 8      # ASSUMPTION — verify against Water Linked protocol spec
+    frame_payload_bytes: 8
     latency_s: 0.5
     loss_prob: 0.05             # ASSUMPTION — not stated in datasheet
     half_duplex: true
