@@ -110,9 +110,11 @@ flake8-comprehensions==3.14.0
 flake8-docstrings==1.6.0
 flake8-import-order==0.18.2
 flake8-quotes==3.4.0
+flatbuffers==25.12.19
 fonttools==4.46.0
 fs==2.4.16
 fsspec==2026.7.0
+gdown==6.4.0
 generate-parameter-library-py==0.7.3
 geographic-msgs==1.0.6
 geometry-msgs==5.3.8
@@ -205,6 +207,7 @@ object-recognition-msgs==2.0.0
 octomap-msgs==2.0.1
 olefile==0.46
 onnx==1.23.0
+onnxruntime==1.30.0
 onnxslim==0.1.96
 opencv-python==4.11.0.86
 osrf-pycommon==2.1.7
@@ -225,6 +228,15 @@ pluggy==1.4.0
 polars==1.44.2
 polars-runtime-32==1.44.2
 protobuf==7.36.2
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_bringup&subdirectory=ros2_ws/build/ps11_bringup
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_common&subdirectory=ros2_ws/build/ps11_common
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_eval&subdirectory=ros2_ws/build/ps11_eval
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_gazebo
+ps11-interfaces==0.1.0
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_mission&subdirectory=ros2_ws/build/ps11_mission
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_nav&subdirectory=ros2_ws/build/ps11_nav
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_perception&subdirectory=ros2_ws/build/ps11_perception
+-e git+https://github.com/ShubhamManglaw/AUV.git@e6dcb50e09b760b5cdeea8009b550833b7fdc3e5#egg=ps11_telemetry&subdirectory=ros2_ws/build/ps11_telemetry
 psutil==5.9.8
 ptyprocess==0.7.0
 pycairo==1.25.1
@@ -245,6 +257,7 @@ PyQt5==5.15.10
 PyQt5-sip==12.13.0
 pyrsistent==0.20.0
 pyserial==3.5
+PySocks==1.7.1
 pytest==7.4.4
 pytest-cov==4.1.0
 python-apt==2.7.7+ubuntu5.2

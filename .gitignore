@@ -18,6 +18,11 @@ venv/
 # ML data and training runs (final weights go in ml/weights/ via Git LFS)
 ml/data/
 ml/runs/
+ml/scratch/
+ml/results/*/
+/yolo11n.pt
+/weights/
+/runs/
 
 # Generated simulation assets (regenerate with tools/make_seabed.py)
 ros2_ws/src/ps11_gazebo/models/seabed_tile_*/
