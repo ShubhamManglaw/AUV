@@ -16,9 +16,9 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T1.3 | Navigation sensor models | Dev | 2 | todo | T1.2 | odom_noise, depth_sim, range_adapter |
 | T1.4 | Seabed decal generator | Dev | 3 | todo | T1.2, T2.1 | **demo scenario only**; eval scenario deferred |
 | T1.5 | Waypoint follower | Dev | 2 | todo | T1.3 | Lawnmower, kinematic control |
-| T2.1 | Datasets | Dev (script) + Team (downloads) | 1 | todo | T0.2 | Team downloads TrashCan and DUO from official sources into ml/data/raw/; Dev runs prepare_dataset.py |
-| T2.2 | Training | Dev | 1 (overnight) | todo | T2.1 | Start before sleeping on Day 1 |
-| T2.3 | Evaluation and export | Dev | 2 | todo | T2.2 | Test mAP, ONNX export |
+| T2.1 | Datasets | Dev (script) + Team (downloads) | 1 | done | T0.2 | TrashCan & DUO mapped, video-level split, test_manifest.txt generated |
+| T2.2 | Training | Dev | 1 (overnight) | done | T2.1 | 129 epochs in 2.15 h, best.pt at epoch 109, early stopping patience=20 |
+| T2.3 | Evaluation and export | Dev | 2 | done | T2.2 | Test split mAP50=0.703, ONNX exported and verified with onnx.checker |
 | T2.4 | Underwater effect node | Dev | 2 | optional | T1.2 | Do if time, or if sim detections are poor |
 | T2.5 | Detector node | Dev | 2 | todo | T2.3 (T2.4 if done) | Rate-capped YOLO, annotated image, H3 banner |
 | T2.6 | Tracker node | Dev | 3 | todo | T2.5 | ByteTrack, confirmed tracks only |
