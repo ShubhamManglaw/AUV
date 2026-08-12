@@ -10,3 +10,13 @@ An AUV edge-intelligence pipeline that turns camera frames into compact, priorit
 - Rules for the coding agent: [`AGENTS.md`](AGENTS.md)
 - Environment setup: plan §5
 - Running the demo: plan §17
+
+## Build
+Always source `tools/env.sh` and build with the virtual environment's Python from `ros2_ws/`:
+```bash
+source tools/env.sh
+cd ros2_ws
+python -m colcon build --symlink-install
+```
+Always build with `python -m colcon build` (never bare `colcon build`) so node executables use the venv interpreter.
+
