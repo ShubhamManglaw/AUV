@@ -1,5 +1,6 @@
 # Semantic telemetry scheduler configuration (§11.7)
 policy: "semantic"  # semantic (proposed) or fifo_observations (baseline B)
+mission_start_s: 0.0  # Mission start offset in seconds (default 0.0 = sim start; §11.1)
 
 heartbeat:
   max_period_s: 15.0

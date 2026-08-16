@@ -28,7 +28,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T3.1 | Codec | Dev | 1 | done | T0.3 | 8-byte messages, golden vectors approved |
 | T3.2 | Link emulator | Dev | 1 | done | T3.1 | 64 bps, latency, loss, pull/queue modes, tests passed |
 | T3.3 | Scheduler | Dev | 3 | todo | T3.2, T2.8 | `semantic` required; `fifo_observations` optional |
-| T3.4 | Surface decoder | Dev | 3 | todo | T3.1 | /link/rx only (H1) |
+| T3.4 | Surface decoder | Dev | 3 | done | T3.1 | /link/rx only (H1), /surface/contacts, /surface/vehicle_track, /surface/markers published |
 | T4.1 | Bringup | Dev | 4 | todo | T1.5, T2.8, T3.3, T3.4 | Top-level launch files |
 | T4.2 | Metrics node | Dev | 4 | todo | T3.4 | Counters, summary.json; recall over all objects ("GT in view" cut) |
 | T4.3 | Foxglove layout | Dev | 4 | todo | T4.1 | Operator layout, titles, banner |
