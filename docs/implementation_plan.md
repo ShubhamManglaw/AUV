@@ -288,7 +288,7 @@ Do this **before** exporting. The rest of the plan depends on these names and fr
 
 ### 7.2 What the exporter produces
 
-A ROS 1 (catkin) package: `package.xml` (format 2), `CMakeLists.txt` (catkin), `urdf/<name>.urdf`, `meshes/*.STL`, ROS 1 launch files, and `config/joint_names_*.yaml`. Mesh paths use `package://<name>/meshes/...`.
+The export was produced with a ROS 2 SolidWorks exporter: `package.xml` (ROS 2 ament_cmake), `CMakeLists.txt`, `urdf/<name>.urdf`, `meshes/*.STL`, launch files, and controller config. Mesh paths use `package://<name>/meshes/...`. Note: the original package name contains a space ("Urdf Assembly") and includes ros2_control blocks that are removed during conversion.
 
 ### 7.3 Conversion to ROS 2 (task T1.1, agent)
 

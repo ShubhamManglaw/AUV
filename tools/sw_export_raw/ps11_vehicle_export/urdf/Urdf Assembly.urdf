@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter for ROS2! Originally created by Stephen Brawner (brawner@gmail.com) 
+     and adapted for ROS 2 by Dr. BENMOUSSA Samir (benmous2a.samir@gmail.com) 
+     Commit Version:   Build Version: 2.0.9746.38549
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="Urdf Assembly">
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.817441355780404 1.1107294718436 1.62174770113278" rpy="0 0 0" />
+      <mass value="12.3609887723418" />
+      <inertia ixx="0.340674040271911" ixy="0.000293377347494791" ixz="-2.3559379491297E-07" iyy="0.354241881524165" iyz="-7.6482247949722E-06" izz="0.0877317527075986" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/base_link.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.894117647058823 0.894117647058823 0.894117647058823 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="Link_FR">
+    <inertial>
+      <origin xyz="-1.27430692664632E-08 -1.0643826930945E-08 -0.0743465280428204" rpy="0 0 0" />
+      <mass value="0.00795764770442146" />
+      <inertia ixx="2.39441631460792E-06" ixy="4.54769384141957E-10" ixz="-5.6785051948583E-13" iyy="2.39327840142496E-06" iyz="1.20248212005547E-13" izz="3.72700811816462E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_FR.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.168627450980392 0.6 0.811764705882353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_FR.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="Joint_FR" type="revolute">
+    <origin xyz="1.0081 -1.2801 1.0604" rpy="-2.7161 -1.0889 1.6946" />
+    <parent link="base_link" />
+    <child link="Link_FR" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+  </joint>
+  <link name="Link_FL">
+    <inertial>
+      <origin xyz="-1.09026281336355E-08 -1.62682508575429E-08 -0.0324813350556705" rpy="0 0 0" />
+      <mass value="0.00795764383508818" />
+      <inertia ixx="2.3944191047177E-06" ixy="4.53768576399029E-10" ixz="-3.52704345965513E-13" iyy="2.39327664781531E-06" iyz="8.05196828019025E-13" izz="3.72700619343747E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_FL.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.168627450980392 0.6 0.811764705882353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_FL.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="Joint_FL" type="revolute">
+    <origin xyz="0.60425 -1.3115 1.0873" rpy="-2.0343 -0.12251 -0.51822" />
+    <parent link="base_link" />
+    <child link="Link_FL" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+  </joint>
+  <link name="Link_MR">
+    <inertial>
+      <origin xyz="-1.4464845765616E-08 -1.04358623964629E-08 -0.00393565775344673" rpy="0 0 0" />
+      <mass value="0.00795764559056645" />
+      <inertia ixx="2.39441675024822E-06" ixy="4.59259643158791E-10" ixz="-2.69856102323958E-13" iyy="2.39328134751629E-06" iyz="6.08285367923084E-13" izz="3.72700705688446E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_MR.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.168627450980392 0.6 0.811764705882353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_MR.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="Joint_MR" type="revolute">
+    <origin xyz="1.0366 -1.6117 1.1144" rpy="-0.7778 0.12455 0.10388" />
+    <parent link="base_link" />
+    <child link="Link_MR" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+  </joint>
+  <link name="Link_ML">
+    <inertial>
+      <origin xyz="-1.7667232954377E-08 -1.34273534513341E-08 -0.00393936019120833" rpy="0 0 0" />
+      <mass value="0.00795764469975832" />
+      <inertia ixx="2.39441774036284E-06" ixy="4.5833894335155E-10" ixz="-2.27215839694418E-13" iyy="2.39328013827774E-06" iyz="5.77566297193137E-13" izz="3.72700688148202E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_ML.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.168627450980392 0.6 0.811764705882353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_ML.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="Joint_ML" type="revolute">
+    <origin xyz="0.59867 -1.6117 1.1238" rpy="-0.77962 0.1092 0.088218" />
+    <parent link="base_link" />
+    <child link="Link_ML" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+  </joint>
+  <link name="Link_BR">
+    <inertial>
+      <origin xyz="-1.04027493286196E-08 -1.33328947882205E-08 0.00612055576120785" rpy="0 0 0" />
+      <mass value="0.00795764588799048" />
+      <inertia ixx="2.39441711151167E-06" ixy="4.54293280032576E-10" ixz="-3.04183212317546E-13" iyy="2.39328034089356E-06" iyz="6.08494558379517E-13" izz="3.72700678473434E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_BR.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.168627450980392 0.6 0.811764705882353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_BR.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="Joint_BR" type="revolute">
+    <origin xyz="1.037 -1.905 1.1146" rpy="1.3744 -0.081293 -0.78298" />
+    <parent link="base_link" />
+    <child link="Link_BR" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+  </joint>
+  <link name="Link_BL">
+    <inertial>
+      <origin xyz="1.05194066790659E-08 -1.87029500775537E-08 0.0601868916730224" rpy="0 0 0" />
+      <mass value="0.00795764612810071" />
+      <inertia ixx="2.39441688266311E-06" ixy="4.44451206857167E-10" ixz="-5.76365676483041E-13" iyy="2.39328092955874E-06" iyz="3.71774549051546E-13" izz="3.7270073132666E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_BL.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.168627450980392 0.6 0.811764705882353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://Urdf Assembly/meshes/Link_BL.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="Joint_BL" type="revolute">
+    <origin xyz="0.5597 -1.8691 1.1112" rpy="1.3962 0.1607 0.77798" />
+    <parent link="base_link" />
+    <child link="Link_BL" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+  </joint>
+  <ros2_control name="Urdf Assembly_system" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="Joint_FR">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0</param>
+      </command_interface>
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="Joint_FL">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0</param>
+      </command_interface>
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="Joint_MR">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0</param>
+      </command_interface>
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="Joint_ML">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0</param>
+      </command_interface>
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="Joint_BR">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0</param>
+      </command_interface>
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+    <joint name="Joint_BL">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0</param>
+      </command_interface>
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+      <state_interface name="effort" />
+    </joint>
+  </ros2_control>
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find Urdf Assembly)/config/Urdf Assembly_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+</robot>
