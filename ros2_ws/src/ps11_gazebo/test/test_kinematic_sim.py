@@ -21,7 +21,9 @@ def test_ocean_demo_kinematic_sdf():
     # Gravity must be 0 0 0 for kinematic mode
     gravity = world.find("gravity")
     assert gravity is not None, "Missing <gravity> tag"
-    assert gravity.text.strip() == "0 0 0", f"Expected gravity '0 0 0', got '{gravity.text.strip()}'"
+    assert gravity.text.strip() == "0 0 0", (
+        f"Expected gravity '0 0 0', got '{gravity.text.strip()}'"
+    )
 
     # Physics step must be 4 ms (0.004 s)
     step = world.find("./physics/max_step_size")
@@ -36,7 +38,9 @@ def test_ocean_demo_kinematic_sdf():
 
     sensors_plug = plugins["gz-sim-sensors-system"]
     render_engine = sensors_plug.find("render_engine")
-    assert render_engine is not None and render_engine.text.strip() == "ogre2", "Sensors render engine must be ogre2"
+    assert render_engine is not None and render_engine.text.strip() == "ogre2", (
+        "Sensors render engine must be ogre2"
+    )
 
     # Seabed plane at z = -15 m
     seabed = world.find("./model[@name='seabed_placeholder']")
@@ -82,6 +86,7 @@ def test_bridge_yaml_config():
 def test_urdf_kinematic_mode():
     """Verify ps11.urdf.xacro has all required sensors and kinematic plugins (§7.4)."""
     import subprocess
+
     cmd = [
         "xacro",
         "ros2_ws/src/ps11_description/urdf/ps11.urdf.xacro",
