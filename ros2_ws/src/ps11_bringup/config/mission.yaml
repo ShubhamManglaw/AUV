@@ -2,8 +2,37 @@
 scenario: demo
 
 lawnmower:
+  survey_origin_x_m: 5.0
+  survey_origin_y_m: -10.0
+  area_x_m: 40.0
+  area_y_m: 20.0
   leg_spacing_m: 4.0
   altitude_m: 2.5
   survey_speed_mps: 1.0
+  turn_speed_mps: 0.8
   waypoint_tolerance_m: 2.0
-  turn_speed_mps: 0.5
+  seabed_z_m: -15.0
+
+scenarios:
+  demo:
+    survey_origin_x_m: 5.0
+    survey_origin_y_m: -10.0
+    area_x_m: 40.0
+    area_y_m: 20.0
+    leg_spacing_m: 4.0
+    altitude_m: 2.5
+    survey_speed_mps: 1.0
+    turn_speed_mps: 0.8
+    waypoint_tolerance_m: 2.0
+    seabed_z_m: -15.0
+  eval:
+    survey_origin_x_m: 5.0
+    survey_origin_y_m: -20.0
+    area_x_m: 90.0
+    area_y_m: 40.0
+    leg_spacing_m: 4.0
+    altitude_m: 2.5
+    survey_speed_mps: 1.0
+    turn_speed_mps: 0.8
+    waypoint_tolerance_m: 2.0
+    seabed_z_m: -15.0

@@ -9,6 +9,10 @@ patterns=(
   "robot_state_publisher"
   "gz topic"
   "ros2 launch ps11"
+  "waypoint_follower"
+  "odom_noise"
+  "depth_sim"
+  "range_adapter"
 )
 
 get_pids() {
@@ -31,7 +35,7 @@ if [ ${#pids_to_kill[@]} -gt 0 ]; then
   kill -INT "${pids_to_kill[@]}" 2>/dev/null || true
 fi
 
-sleep 3
+sleep 2
 
 remaining_pids=($(get_pids))
 if [ ${#remaining_pids[@]} -gt 0 ]; then

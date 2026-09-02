@@ -8,6 +8,13 @@
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>ps11_interfaces</depend>
+  <depend>ps11_common</depend>
 
   <test_depend>python3-pytest</test_depend>
 
