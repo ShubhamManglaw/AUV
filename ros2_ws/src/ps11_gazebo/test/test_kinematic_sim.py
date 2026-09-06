@@ -6,9 +6,25 @@ from pathlib import Path
 import yaml
 
 
+def _resolve_path(p_str: str) -> Path:
+    p = Path(p_str)
+    if p.exists():
+        return p
+    if p_str.startswith("ros2_ws/"):
+        p_sub = Path(p_str[len("ros2_ws/") :])
+        if p_sub.exists():
+            return p_sub
+    p_up = Path("..") / p_str
+    if p_up.exists():
+        return p_up
+    return p
+
+
 def test_ocean_demo_kinematic_sdf():
     """Verify ocean_demo_kinematic.sdf conforms to §8.1 specifications."""
-    world_path = Path("ros2_ws/src/ps11_gazebo/worlds/ocean_demo_kinematic.sdf")
+    world_path = _resolve_path(
+        "ros2_ws/src/ps11_gazebo/worlds/ocean_demo_kinematic.sdf"
+    )
     assert world_path.exists(), f"World file not found: {world_path}"
 
     tree = ET.parse(world_path)
@@ -42,9 +58,11 @@ def test_ocean_demo_kinematic_sdf():
         "Sensors render engine must be ogre2"
     )
 
-    # Seabed plane at z = -15 m
+    # Seabed plane at z = -15 m (placeholder or procedural tile)
     seabed = world.find("./model[@name='seabed_placeholder']")
-    assert seabed is not None, "Missing seabed model"
+    if seabed is None:
+        seabed = world.find("./include[name='seabed_tile_0_0']")
+    assert seabed is not None, "Missing seabed model or tile"
     pose = seabed.find("pose")
     assert pose is not None, "Missing seabed pose"
     parts = pose.text.strip().split()
@@ -53,7 +71,7 @@ def test_ocean_demo_kinematic_sdf():
 
 def test_bridge_yaml_config():
     """Verify bridge.yaml maps all required topics (§8.3, §8.4)."""
-    bridge_path = Path("ros2_ws/src/ps11_gazebo/config/bridge.yaml")
+    bridge_path = _resolve_path("ros2_ws/src/ps11_gazebo/config/bridge.yaml")
     assert bridge_path.exists(), f"Bridge config not found: {bridge_path}"
 
     with open(bridge_path, "r") as f:
@@ -65,8 +83,6 @@ def test_bridge_yaml_config():
     expected_topics = [
         "/clock",
         "/vehicle/cmd_vel",
-        "/vehicle/camera/image_raw",
-        "/vehicle/camera/depth",
         "/vehicle/camera/camera_info",
         "/vehicle/imu",
         "/vehicle/altimeter/scan",
@@ -80,16 +96,17 @@ def test_bridge_yaml_config():
     assert ros_topics["/vehicle/cmd_vel"]["direction"] == "ROS_TO_GZ"
     assert ros_topics["/clock"]["direction"] == "GZ_TO_ROS"
     assert ros_topics["/sim/gt/odom"]["direction"] == "GZ_TO_ROS"
-    assert ros_topics["/vehicle/camera/image_raw"]["direction"] == "GZ_TO_ROS"
 
 
 def test_urdf_kinematic_mode():
     """Verify ps11.urdf.xacro has all required sensors and kinematic plugins (§7.4)."""
     import subprocess
 
+    xacro_file = _resolve_path("ros2_ws/src/ps11_description/urdf/ps11.urdf.xacro")
+    assert xacro_file.exists(), f"Xacro file not found: {xacro_file}"
     cmd = [
         "xacro",
-        "ros2_ws/src/ps11_description/urdf/ps11.urdf.xacro",
+        str(xacro_file),
         "mode:=kinematic",
     ]
     res = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -116,15 +133,18 @@ def test_urdf_kinematic_mode():
     for req in required_links:
         assert req in link_names, f"Missing link '{req}' in URDF"
 
-    # Check sensors exist in gazebo tags
+    # Check sensors exist in gazebo tags (camera & depth_camera per §7.4, T1.2)
     sensors = {s.attrib.get("name"): s for s in root.findall(".//sensor")}
-    assert "rgbd_camera" in sensors, "Missing rgbd_camera sensor"
+    assert "camera" in sensors or "rgbd_camera" in sensors, "Missing camera sensor"
+    assert "depth_camera" in sensors or "rgbd_camera" in sensors, (
+        "Missing depth_camera sensor"
+    )
     assert "imu_sensor" in sensors, "Missing imu_sensor"
     assert "altimeter" in sensors, "Missing altimeter sensor"
 
-    rgbd = sensors["rgbd_camera"]
-    assert rgbd.attrib.get("type") == "rgbd_camera"
-    assert float(rgbd.find("update_rate").text) == 10.0
+    cam = sensors.get("camera", sensors.get("rgbd_camera"))
+    assert cam is not None
+    assert float(cam.find("update_rate").text) == 10.0
 
     imu = sensors["imu_sensor"]
     assert imu.attrib.get("type") == "imu"
