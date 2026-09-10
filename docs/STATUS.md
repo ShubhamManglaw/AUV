@@ -20,7 +20,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T2.2 | Training | Dev | 1 (overnight) | done | T2.1 | 129 epochs in 2.15 h, best.pt at epoch 109, early stopping patience=20 |
 | T2.3 | Evaluation and export | Dev | 2 | done | T2.2 | Test split mAP50=0.703, ONNX exported and verified with onnx.checker |
 | T2.4 | Underwater effect node | Dev | 2 | optional | T1.2 | Do if time, or if sim detections are poor |
-| T2.5 | Detector node | Dev | 2 | todo | T2.3 (T2.4 if done) | Rate-capped YOLO, annotated image, H3 banner |
+| T2.5 | Detector node | Dev | 2 | done | T2.3 | Rate-capped YOLO (5.00 Hz measured), annotated image, H3 banner, detectability check across 12 objects logged to results/bench/ |
 | T2.6 | Tracker node | Dev | 3 | todo | T2.5 | ByteTrack, confirmed tracks only |
 | T2.7 | Geolocator node | Dev | 3 | todo | T2.6, T1.3 | Ray-to-seabed projection, uncertainty |
 | T2.8 | Contact database node | Dev | 3 | todo | T2.7 | Observation fusion |
