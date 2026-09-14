@@ -7,6 +7,7 @@ measures detector topic frequency, and reports a detectability table.
 """
 
 import math
+import os
 import subprocess
 import sys
 import time
@@ -167,8 +168,8 @@ class DetectabilityNode(Node):
         target_y: float,
         target_z: float = -12.5,
         target_yaw: float = 0.0,
-        tolerance: float = 0.35,
-        timeout_s: float = 35.0,
+        tolerance: float = 0.40,
+        timeout_s: float = 25.0,
     ) -> bool:
         """Drive vehicle to waypoint using proportional velocity control."""
         t_start = time.time()
@@ -189,29 +190,27 @@ class DetectabilityNode(Node):
                 math.sin(target_yaw - cur_yaw), math.cos(target_yaw - cur_yaw)
             )
 
-            if dist_xy < tolerance and abs(dz) < 0.20:
+            if dist_xy < tolerance and abs(dz) < 0.25:
                 # Arrived, brake
                 stop_twist = Twist()
                 self.cmd_pub.publish(stop_twist)
                 return True
 
-            # Proportional velocity commands
+            # High-speed proportional velocity commands (fast transit)
             cmd = Twist()
-            # Forward speed: align along current heading
             head_to_target = math.atan2(dy, dx)
             head_err = math.atan2(
                 math.sin(head_to_target - cur_yaw), math.cos(head_to_target - cur_yaw)
             )
 
             if abs(head_err) > math.pi / 2.0:
-                # Target is behind, reverse slightly
-                cmd.linear.x = -min(0.5, 0.4 * dist_xy)
+                cmd.linear.x = -min(1.2, 0.8 * dist_xy)
             else:
-                cmd.linear.x = min(1.0, 0.7 * dist_xy * math.cos(head_err))
+                cmd.linear.x = min(3.0, 1.8 * dist_xy * math.cos(head_err))
 
-            cmd.linear.y = min(0.6, 0.5 * dist_xy * math.sin(head_err))
-            cmd.linear.z = min(0.4, max(-0.4, 0.8 * dz))
-            cmd.angular.z = min(0.6, max(-0.6, 1.2 * yaw_err))
+            cmd.linear.y = min(2.0, 1.2 * dist_xy * math.sin(head_err))
+            cmd.linear.z = min(0.8, max(-0.8, 1.5 * dz))
+            cmd.angular.z = min(1.8, max(-1.8, 2.5 * yaw_err))
 
             self.cmd_pub.publish(cmd)
 
@@ -221,6 +220,9 @@ class DetectabilityNode(Node):
 
 
 def main() -> None:
+    gui = "--gui" in sys.argv
+    gui_str = "true" if gui else "false"
+
     repo_root = Path(__file__).resolve().parent.parent
     bench_dir = repo_root / "results" / "bench"
     bench_dir.mkdir(parents=True, exist_ok=True)
@@ -231,7 +233,7 @@ def main() -> None:
 
     print("=" * 70)
     print("PS11 AUV — Detectability Verification Runner (T2.5)")
-    print(f"Total objects to test: {len(objects)}")
+    print(f"Total objects to test: {len(objects)} | GUI: {gui_str} (fast-forward mode)")
     print("=" * 70)
 
     sim_log = open(bench_dir / "sim_detect.log", "w", encoding="utf-8")  # noqa: SIM115
@@ -244,7 +246,7 @@ def main() -> None:
     try:
         # 1. Launch Gazebo Harmonic Simulation
         print(
-            "[test_detectability] Starting simulation: ros2 launch ps11_gazebo sim.launch.py gui:=false x:=0.0 y:=0.0 z:=-12.5"
+            f"[test_detectability] Starting simulation: ros2 launch ps11_gazebo sim.launch.py gui:={gui_str} x:=0.0 y:=0.0 z:=-12.5"
         )
         sim_proc = subprocess.Popen(
             [
@@ -252,7 +254,7 @@ def main() -> None:
                 "launch",
                 "ps11_gazebo",
                 "sim.launch.py",
-                "gui:=false",
+                f"gui:={gui_str}",
                 "x:=0.0",
                 "y:=0.0",
                 "z:=-12.5",
@@ -267,6 +269,8 @@ def main() -> None:
         print(
             "[test_detectability] Starting detector node: ros2 run ps11_perception detector --ros-args -p use_sim_time:=true"
         )
+        det_env = dict(os.environ)
+        det_env["PYTHONUNBUFFERED"] = "1"
         det_proc = subprocess.Popen(
             [
                 "ros2",
@@ -279,6 +283,7 @@ def main() -> None:
             ],
             stdout=det_log,
             stderr=subprocess.STDOUT,
+            env=det_env,
         )
 
         rclpy.init()
@@ -327,10 +332,15 @@ def main() -> None:
             )
             _reached = node.drive_to(waypoint_x, waypoint_y, waypoint_z, target_yaw=0.0)
 
-            # Settle and let detector process multiple frames
+            # Settle to let detector process fresh frame at target waypoint
+            node.latest_annotated = None
+            node.latest_detections = None
             t_settle = time.time()
-            while time.time() - t_settle < 1.5:
-                rclpy.spin_once(node, timeout_sec=0.1)
+            settle_timeout = 6.0 if gui else 3.0
+            while time.time() - t_settle < 0.6 or node.latest_annotated is None:
+                rclpy.spin_once(node, timeout_sec=0.05)
+                if time.time() - t_settle > settle_timeout:
+                    break
 
             # Compute ground truth projection into camera
             p_world = np.array([target_x, target_y, target_z], dtype=np.float64)
