@@ -20,6 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "detector = ps11_perception.detector_node:main",
+            "tracker = ps11_perception.tracker_node:main",
         ],
     },
 )
