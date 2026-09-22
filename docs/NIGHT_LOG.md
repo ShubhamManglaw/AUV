@@ -1,9 +1,9 @@
 # PS11-AUV Overnight Autonomous Work Log
 
 ## Executive Summary
-- **Overall Status:** In progress (Q0, Q1 complete; working through Q2–Q10)
-- **Tasks Complete:** Q0 (T2.9 Report & Deployment), Q1 (T2.6 Tracker)
-- **Tasks In Progress / Next:** Q2 (T2.7 Geolocator)
+- **Overall Status:** In progress (Q0, Q1, Q2 complete; working through Q3–Q10)
+- **Tasks Complete:** Q0 (T2.9 Report & Deployment), Q1 (T2.6 Tracker), Q2 (T2.7 Geolocator)
+- **Tasks In Progress / Next:** Q3 (T2.8 Contact Database)
 - **Tasks Blocked:** None
 - **Three Most Important Items for Human Review:**
   1. **Detector Fine-Tuning (T2.9 / Q0):** Real test mAP50 improved to 0.705 (+0.002 overall, +0.035 debris); `ml/weights/best_v2.pt` deployed.
@@ -101,6 +101,38 @@ Starting >>> ps11_perception
 Finished <<< ps11_perception [1.10s]
 
 Summary: 1 package finished [1.22s]
+```
+
+---
+
+## Q2 — T2.7 Geolocator Node
+- **Status:** DONE
+- **Deliverables:**
+  - `ros2_ws/src/ps11_perception/ps11_perception/geo.py` (pure geometry: ray projection, flat seabed intersection, upward/range checks, first-order sigma formula)
+  - `ros2_ws/src/ps11_perception/test/test_geo.py` (unit tests covering 45 deg pitch 2.5m ahead, upward rays, max range, sigma formula)
+  - `ros2_ws/src/ps11_perception/ps11_perception/geolocator_node.py` (ROS 2 node with TF2 lookup at image stamp, CameraInfo and Range subscription, publishing `/vehicle/perception/observations`)
+  - `ros2_ws/src/ps11_perception/test/test_geolocator_node.py` (node integration test with static TF and synthetic tracks)
+  - `ros2_ws/src/ps11_perception/setup.py` (entry point `geolocator`)
+- **Key Commands & Output (Verbatim):**
+```text
+$ python -m pytest ros2_ws/src/ps11_perception/test/test_geo.py ros2_ws/src/ps11_perception/test/test_geolocator_node.py -v
+============================= test session starts ==============================
+collected 5 items
+
+ros2_ws/src/ps11_perception/test/test_geo.py::test_camera_pitched_45_hits_ahead PASSED [ 20%]
+ros2_ws/src/ps11_perception/test/test_geo.py::test_upward_rays_discarded PASSED [ 40%]
+ros2_ws/src/ps11_perception/test/test_geo.py::test_beyond_max_range_discarded PASSED [ 60%]
+ros2_ws/src/ps11_perception/test/test_geo.py::test_sigma_formula PASSED  [ 80%]
+ros2_ws/src/ps11_perception/test/test_geolocator_node.py::test_geolocator_node_with_static_tf_and_synthetic_tracks PASSED [100%]
+
+============================== 5 passed in 1.63s ===============================
+```
+```text
+$ cd ros2_ws && python -m colcon build --symlink-install --packages-select ps11_perception
+Starting >>> ps11_perception
+Finished <<< ps11_perception [1.10s]
+
+Summary: 1 package finished [1.21s]
 ```
 
 ---
