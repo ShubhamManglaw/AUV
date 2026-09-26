@@ -26,3 +26,9 @@ All notable changes and interface updates to the PS11-AUV project will be docume
 - Confirmed assumption A4: Water Linked M64 protocol specification confirms 8-byte payload per acoustic packet. Removed `ASSUMPTION` label from `frame_payload_bytes` in plan §11.6 and `link_profiles.yaml` (retained on `loss_prob`).
 - Noted in `link_profiles.yaml` and plan §11.6 label that M64 is discontinued and used as a representative published spec.
 - Added strict AGENTS.md rules requiring `python -m pytest` and terminal copy-pasting of verbatim command output.
+
+## T3.2: link emulator
+
+- Implemented pure-Python `LinkModel` channel emulator (`ps11_telemetry/link_model.py`) supporting acoustic airtime calculation, half-duplex channel state, propagation latency, random frame loss, all-zero sync payload discarding at receiver, queue mode buffering, and pull mode `tx_ready` repeat signals.
+- Implemented `link_emulator` ROS 2 node (`ps11_telemetry/link_emulator_node.py`) wrapping `LinkModel` with sim-time support, `/link/tx` subscription, and `/link/rx`, `/link/tx_ready`, `/link/stats` publishers.
+- Added unit tests with simulated clock in `ps11_telemetry/test/test_link_model.py`.
