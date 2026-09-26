@@ -4,6 +4,7 @@ Pure-Python module with no ROS dependencies.
 """
 
 import logging
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -49,6 +50,11 @@ class ContactReport:
     is_update: bool
 
 
+def round_half_away_from_zero(val: float) -> int:
+    """Round float to nearest integer with ties rounded away from zero."""
+    return math.floor(val + 0.5) if val >= 0 else math.ceil(val - 0.5)
+
+
 def _clamp(val: float, min_val: float, max_val: float, field_name: str) -> float:
     if val < min_val:
         logger.warning(
@@ -81,6 +87,10 @@ def encode(msg: Heartbeat | ContactReport) -> bytes:
     val = 0
 
     if isinstance(msg, Heartbeat):
+        # Validate non-clamped identifiers (§11.1)
+        if not (0 <= msg.state <= 7):
+            raise ValueError(f"Heartbeat.state must be in range 0–7, got {msg.state}")
+
         # type: 2 bits (1 = 01)
         val = (val << 2) | TYPE_HEARTBEAT
 
@@ -89,66 +99,73 @@ def encode(msg: Heartbeat | ContactReport) -> bytes:
         val = (val << 11) | t_enc
 
         # x: 12 bits signed, 0.5 m resolution, clamp [-2048, 2047]
-        x_steps = round(msg.x_m / 0.5)
+        x_steps = round_half_away_from_zero(msg.x_m / 0.5)
         x_clamped = int(_clamp(x_steps, -2048, 2047, "Heartbeat.x_m"))
         val = (val << 12) | (x_clamped & 0xFFF)
 
         # y: 12 bits signed, 0.5 m resolution, clamp [-2048, 2047]
-        y_steps = round(msg.y_m / 0.5)
+        y_steps = round_half_away_from_zero(msg.y_m / 0.5)
         y_clamped = int(_clamp(y_steps, -2048, 2047, "Heartbeat.y_m"))
         val = (val << 12) | (y_clamped & 0xFFF)
 
         # depth: 8 bits unsigned, 0.5 m resolution, clamp [0, 255]
-        depth_steps = round(msg.depth_m / 0.5)
+        depth_steps = round_half_away_from_zero(msg.depth_m / 0.5)
         depth_clamped = int(_clamp(depth_steps, 0, 255, "Heartbeat.depth_m"))
         val = (val << 8) | depth_clamped
 
         # heading: 6 bits unsigned, 5.625°/step, mod 64
-        heading_steps = round(msg.heading_deg / 5.625) % 64
+        heading_steps = round_half_away_from_zero(msg.heading_deg / 5.625) % 64
         val = (val << 6) | heading_steps
 
         # battery: 4 bits unsigned, round(frac * 15), clamp [0, 15]
-        bat_steps = round(msg.battery_frac * 15.0)
+        bat_steps = round_half_away_from_zero(msg.battery_frac * 15.0)
         bat_clamped = int(_clamp(bat_steps, 0, 15, "Heartbeat.battery_frac"))
         val = (val << 4) | bat_clamped
 
-        # state: 3 bits unsigned, clamp [0, 7]
-        state_clamped = int(_clamp(msg.state, 0, 7, "Heartbeat.state"))
-        val = (val << 3) | state_clamped
+        # state: 3 bits unsigned
+        val = (val << 3) | msg.state
 
-        # pending: 6 bits unsigned, saturates at 63
-        pending_clamped = int(_clamp(msg.pending, 0, 63, "Heartbeat.pending"))
+        # pending: 6 bits unsigned, saturates at 63 without warning
+        pending_clamped = max(0, min(msg.pending, 63))
         val = (val << 6) | pending_clamped
 
     elif isinstance(msg, ContactReport):
+        # Validate non-clamped identifiers (§11.1)
+        if not (0 <= msg.contact_id <= 255):
+            raise ValueError(
+                f"ContactReport.contact_id must be in range 0–255, got {msg.contact_id}"
+            )
+        if not (0 <= msg.class_id <= 7):
+            raise ValueError(
+                f"ContactReport.class_id must be in range 0–7, got {msg.class_id}"
+            )
+
         # type: 2 bits (2 = 10)
         val = (val << 2) | TYPE_CONTACT
 
-        # contact_id: 8 bits unsigned, clamp [0, 255]
-        cid_clamped = int(_clamp(msg.contact_id, 0, 255, "ContactReport.contact_id"))
-        val = (val << 8) | cid_clamped
+        # contact_id: 8 bits unsigned
+        val = (val << 8) | msg.contact_id
 
-        # class_id: 3 bits unsigned, clamp [0, 7]
-        cls_clamped = int(_clamp(msg.class_id, 0, 7, "ContactReport.class_id"))
-        val = (val << 3) | cls_clamped
+        # class_id: 3 bits unsigned
+        val = (val << 3) | msg.class_id
 
         # confidence: 3 bits unsigned, round(conf * 7), clamp [0, 7]
-        conf_steps = round(msg.confidence * 7.0)
+        conf_steps = round_half_away_from_zero(msg.confidence * 7.0)
         conf_clamped = int(_clamp(conf_steps, 0, 7, "ContactReport.confidence"))
         val = (val << 3) | conf_clamped
 
         # x: 12 bits signed, 0.5 m resolution, clamp [-2048, 2047]
-        x_steps = round(msg.x_m / 0.5)
+        x_steps = round_half_away_from_zero(msg.x_m / 0.5)
         x_clamped = int(_clamp(x_steps, -2048, 2047, "ContactReport.x_m"))
         val = (val << 12) | (x_clamped & 0xFFF)
 
         # y: 12 bits signed, 0.5 m resolution, clamp [-2048, 2047]
-        y_steps = round(msg.y_m / 0.5)
+        y_steps = round_half_away_from_zero(msg.y_m / 0.5)
         y_clamped = int(_clamp(y_steps, -2048, 2047, "ContactReport.y_m"))
         val = (val << 12) | (y_clamped & 0xFFF)
 
         # depth: 8 bits unsigned, 0.5 m resolution, clamp [0, 255]
-        depth_steps = round(msg.depth_m / 0.5)
+        depth_steps = round_half_away_from_zero(msg.depth_m / 0.5)
         depth_clamped = int(_clamp(depth_steps, 0, 255, "ContactReport.depth_m"))
         val = (val << 8) | depth_clamped
 
