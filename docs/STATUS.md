@@ -8,7 +8,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 |---|---|---|---|---|---|---|
 | **M1: Pitch Demo** | | | | | | |
 | T0.1 | Repository scaffold | Dev | 1 | done | None | Layout, empty packages, Git LFS verified; follow-up fixes: ps11_gazebo as ament_cmake, .gitkeep, CHANGELOG |
-| T0.2 | Laptop environment | Dev (+ HUMAN for driver) | 1 | todo | T0.1 | Driver, Xorg and apt packages by hand; venv, env.sh, check_env.sh by agent |
+| T0.2 | Laptop environment | Dev (+ HUMAN for driver) | 1 | done | T0.1 | Driver, Xorg and apt packages by hand; venv, env.sh, check_env.sh by agent; all checks PASS |
 | T0.3 | Interfaces and common helpers | Dev | 1 | todo | T0.1 | ps11_interfaces, ps11_common, config YAMLs |
 | T1.0 | SolidWorks export [HUMAN] | Team | 1 (tonight) | todo | None | §7.1 checklist; send zipped export + assembly + mass, dimensions, thruster count and max thrust |
 | T1.1 | Convert export to ROS 2 | Dev | 2 | todo | T0.3, T1.0 | convert_sw_export.py, ps11_description |
