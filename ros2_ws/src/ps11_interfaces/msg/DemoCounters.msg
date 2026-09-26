@@ -1,0 +1,11 @@
+std_msgs/Header header
+uint64 semantic_bits_sent
+uint64 jpeg_equiv_bits
+float64 ratio_vs_jpeg
+float64 jpeg_airtime_at_link_s
+uint32 contacts_onboard
+uint32 contacts_at_surface
+uint32 gt_objects_in_view
+uint32 gt_objects_reported
+float32 mean_position_error_m
+float32 mean_first_report_latency_s

@@ -1,0 +1,10 @@
+# Vehicle configuration
+# CAD values arrive tonight. Filled in T1.0.
+num_thrusters: null          # TODO: from CAD export (T1.0)
+max_thrust_n: null           # TODO: from CAD export (T1.0)
+thruster_datasheet_url: null # TODO: from CAD export (T1.0)
+mass_kg: null                # TODO: from CAD export (T1.0)
+dimensions_m:
+  length: null               # TODO: from CAD export (T1.0)
+  width: null                # TODO: from CAD export (T1.0)
+  height: null               # TODO: from CAD export (T1.0)

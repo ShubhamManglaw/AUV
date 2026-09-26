@@ -1,0 +1,6 @@
+classes:
+  - {id: 0, name: debris,     priority: 1.0, color: "#E4572E"}   # defence proxy: man-made objects
+  - {id: 1, name: starfish,   priority: 0.3, color: "#F2C14E"}
+  - {id: 2, name: sea_urchin, priority: 0.3, color: "#9B5DE5"}
+  - {id: 3, name: scallop,    priority: 0.2, color: "#4ECDC4"}
+# IDs 4–7 reserved (the message format allows 8 classes).

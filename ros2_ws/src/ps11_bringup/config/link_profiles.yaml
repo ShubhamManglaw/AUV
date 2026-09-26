@@ -1,0 +1,16 @@
+# Link profiles configuration (§11.6)
+profiles:
+  m64:
+    label: "Water Linked Modem M64 — datasheet: 64 bps net, ~500 ms latency, half-duplex, 200 m range"
+    bitrate_bps: 64
+    frame_payload_bytes: 8      # ASSUMPTION — verify against Water Linked protocol spec
+    latency_s: 0.5
+    loss_prob: 0.05             # ASSUMPTION — not stated in datasheet
+    half_duplex: true
+  generic_1k:
+    label: "Generic ~1 kbps shallow-water acoustic modem (comparison profile)"
+    bitrate_bps: 1000
+    frame_payload_bytes: 32
+    latency_s: 0.5
+    loss_prob: 0.05             # ASSUMPTION
+    half_duplex: true
