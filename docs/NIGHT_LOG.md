@@ -136,3 +136,33 @@ Summary: 1 package finished [1.21s]
 ```
 
 ---
+
+## Q3 — T2.8 Contact Database Node
+- **Status:** DONE
+- **Deliverables:**
+  - `ros2_ws/src/ps11_perception/ps11_perception/fusion.py` (pure logic: inverse-variance fusion, spatial gating max(2.0, 3*sigma), sigma floor 0.3 m, majority-vote class)
+  - `ros2_ws/src/ps11_perception/test/test_fusion.py` (unit tests covering same track updates same contact, new track joins within gate, inverse-variance weighting, sigma floor >= 0.3 m)
+  - `ros2_ws/src/ps11_perception/ps11_perception/contact_db_node.py` (ROS 2 node publishing `/vehicle/contacts` and `/vehicle/markers` at 2 Hz)
+  - `ros2_ws/src/ps11_perception/setup.py` (entry point `contact_db`)
+- **Key Commands & Output (Verbatim):**
+```text
+$ python -m pytest ros2_ws/src/ps11_perception/test/test_fusion.py -v
+============================= test session starts ==============================
+collected 4 items
+
+ros2_ws/src/ps11_perception/test/test_fusion.py::test_same_track_updates_same_contact PASSED [ 25%]
+ros2_ws/src/ps11_perception/test/test_fusion.py::test_new_track_within_gate_joins_contact PASSED [ 50%]
+ros2_ws/src/ps11_perception/test/test_fusion.py::test_inverse_variance_fusion PASSED [ 75%]
+ros2_ws/src/ps11_perception/test/test_fusion.py::test_sigma_never_below_floor PASSED [100%]
+
+============================== 4 passed in 0.81s ===============================
+```
+```text
+$ cd ros2_ws && python -m colcon build --symlink-install --packages-select ps11_perception
+Starting >>> ps11_perception
+Finished <<< ps11_perception [1.12s]
+
+Summary: 1 package finished [1.23s]
+```
+
+---
