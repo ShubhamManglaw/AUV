@@ -32,3 +32,8 @@ All notable changes and interface updates to the PS11-AUV project will be docume
 - Implemented pure-Python `LinkModel` channel emulator (`ps11_telemetry/link_model.py`) supporting acoustic airtime calculation, half-duplex channel state, propagation latency, random frame loss, all-zero sync payload discarding at receiver, queue mode buffering, and pull mode `tx_ready` repeat signals.
 - Implemented `link_emulator` ROS 2 node (`ps11_telemetry/link_emulator_node.py`) wrapping `LinkModel` with sim-time support, `/link/tx` subscription, and `/link/rx`, `/link/tx_ready`, `/link/stats` publishers.
 - Added unit tests with simulated clock in `ps11_telemetry/test/test_link_model.py`.
+
+## T3.4: surface decoder and mission start time parameter
+
+- §11.1 plan update: Surface decoder cannot access vehicle odometry per honesty rule H1. Replaced odometry-based mission start with shared parameter `mission_start_s` in `scheduler.yaml` (default 0.0 = sim start), read by both `scheduler` and `surface_decoder`.
+
