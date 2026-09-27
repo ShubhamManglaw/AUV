@@ -37,4 +37,5 @@ if [ -z "$DISPLAY" ]; then
   export XAUTHORITY="/run/user/${_USER_ID}/gdm/Xauthority"
   unset _USER_ID _SESSION_ID _DISP _X_SOCK
 fi
+export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/qt5/plugins
 echo "[env.sh] DISPLAY=$DISPLAY"
