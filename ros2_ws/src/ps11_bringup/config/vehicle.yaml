@@ -1,10 +1,23 @@
-# Vehicle configuration
-# CAD values arrive tonight. Filled in T1.0.
-num_thrusters: null          # TODO: from CAD export (T1.0)
-max_thrust_n: null           # TODO: from CAD export (T1.0)
-thruster_datasheet_url: null # TODO: from CAD export (T1.0)
-mass_kg: null                # TODO: from CAD export (T1.0)
+# Vehicle configuration (§7.1, §7.4, T1.1)
+num_thrusters: 6
+max_thrust_n: null           # TODO: from CAD export / thruster testing
+thruster_datasheet_url: null # TODO: datasheet link
+mass_kg: 12.36
 dimensions_m:
-  length: null               # TODO: from CAD export (T1.0)
-  width: null                # TODO: from CAD export (T1.0)
-  height: null               # TODO: from CAD export (T1.0)
+  length: 0.714
+  width: 0.564
+  height: 0.220
+
+# Thruster naming and mapping:
+#   thruster_1: Link_FR (front right)
+#   thruster_2: Link_FL (front left)
+#   thruster_3: Link_MR (middle right)
+#   thruster_4: Link_ML (middle left)
+#   thruster_5: Link_BR (back right)
+#   thruster_6: Link_BL (back left)
+#
+# Intended thruster design angles:
+#   front pair (thruster_1, thruster_2): 25° below horizontal (-25°)
+#   middle pair (thruster_3, thruster_4): 45° above horizontal (+45°)
+#   back pair (thruster_5, thruster_6): 10° above horizontal (+10°)
+#   left/right mirror-symmetric

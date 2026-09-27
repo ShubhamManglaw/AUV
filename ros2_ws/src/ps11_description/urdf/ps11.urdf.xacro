@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="ps11" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="mode" default="kinematic" />
+  <xacro:arg name="camera_x" default="0.357" />
+  <xacro:arg name="camera_y" default="0.0" />
+  <xacro:arg name="camera_z" default="0.0" />
+  <xacro:arg name="camera_pitch" default="0.785398" />
+
+  <!-- Include Core Model converted from SolidWorks -->
+  <xacro:include filename="$(find ps11_description)/urdf/ps11_core.urdf.xacro" />
+
+  <!-- Camera link: front centre of hull, pitched 45° down (design choice, not modelled in CAD) -->
+  <link name="camera_link" />
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="camera_link" />
+    <origin xyz="$(arg camera_x) $(arg camera_y) $(arg camera_z)" rpy="0 $(arg camera_pitch) 0" />
+  </joint>
+
+  <!-- Standard optical frame (Z forward, X right, Y down) -->
+  <link name="camera_optical_frame" />
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link" />
+    <child link="camera_optical_frame" />
+    <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679" />
+  </joint>
+
+  <!-- Navigation sensor frames at hull centre -->
+  <link name="imu_link" />
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="imu_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+
+  <!-- Altimeter link pointing straight down (pitched 90° down) -->
+  <link name="altimeter_link" />
+  <joint name="altimeter_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="altimeter_link" />
+    <origin xyz="0 0 0" rpy="0 1.57079632679 0" />
+  </joint>
+
+  <!-- Depth sensor link -->
+  <link name="depth_sensor_link" />
+  <joint name="depth_sensor_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="depth_sensor_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+</robot>

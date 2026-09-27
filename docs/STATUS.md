@@ -10,8 +10,8 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T0.1 | Repository scaffold | Dev | 1 | done | None | Layout, empty packages, Git LFS verified; follow-up fixes: ps11_gazebo as ament_cmake, .gitkeep, CHANGELOG |
 | T0.2 | Laptop environment | Dev (+ HUMAN for driver) | 1 | done | T0.1 | Driver, Xorg and apt packages by hand; venv, env.sh, check_env.sh by agent; all checks PASS |
 | T0.3 | Interfaces and common helpers | Dev | 1 | done | T0.1 | ps11_interfaces, ps11_common, config YAMLs; tests and rosidl verified |
-| T1.0 | SolidWorks export [HUMAN] | Team | 1 (tonight) | todo | None | §7.1 checklist; send zipped export + assembly + mass, dimensions, thruster count and max thrust |
-| T1.1 | Convert export to ROS 2 | Dev | 2 | todo | T0.3, T1.0 | convert_sw_export.py, ps11_description |
+| T1.0 | SolidWorks export [HUMAN] | Team | 1 (tonight) | done | None | ROS 2 exporter export committed to tools/sw_export_raw/ps11_vehicle_export |
+| T1.1 | Convert export to ROS 2 | Dev | 2 | done | T0.3, T1.0 | convert_sw_export.py, ps11_description (meshes decimated to 50k, URDF REP-103 validated) |
 | T1.2 | Worlds, spawn, sensors and bridge | Dev | 2 | todo | T1.1 | Gazebo Harmonic worlds, sim.launch.py, bridge, env hook |
 | T1.3 | Navigation sensor models | Dev | 2 | todo | T1.2 | odom_noise, depth_sim, range_adapter |
 | T1.4 | Seabed decal generator | Dev | 3 | todo | T1.2, T2.1 | **demo scenario only**; eval scenario deferred |
