@@ -14,7 +14,7 @@ echo "=========================================="
 echo ""
 
 # 1. DISPLAY & Xorg Session check
-echo "--- [1/7] Display & Xorg Session Check ---"
+echo "--- [1/8] Display & Xorg Session Check ---"
 echo "DISPLAY: $DISPLAY"
 if [ -n "$XAUTHORITY" ]; then
   echo "XAUTHORITY: $XAUTHORITY"
@@ -37,7 +37,7 @@ fi
 echo ""
 
 # 2. NVIDIA GPU & Driver check
-echo "--- [2/7] NVIDIA GPU & Driver Check ---"
+echo "--- [2/8] NVIDIA GPU & Driver Check ---"
 if command -v nvidia-smi &>/dev/null; then
   _GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n 1)
   _DRIVER_VER=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -n 1)
@@ -58,7 +58,7 @@ fi
 echo ""
 
 # 3. Gazebo Harmonic check
-echo "--- [3/7] Gazebo Harmonic Check ---"
+echo "--- [3/8] Gazebo Harmonic Check ---"
 if command -v gz &>/dev/null; then
   _GZ_VER=$(gz sim --version 2>&1 | head -n 1)
   echo "Gazebo version output: $_GZ_VER"
@@ -75,7 +75,7 @@ fi
 echo ""
 
 # 4. ROS 2 Jazzy & Required Packages
-echo "--- [4/7] ROS 2 Jazzy & Packages Check ---"
+echo "--- [4/8] ROS 2 Jazzy & Packages Check ---"
 if [ "$ROS_DISTRO" = "jazzy" ]; then
   echo "[PASS] ROS 2 distro is jazzy"
 else
@@ -102,7 +102,7 @@ fi
 echo ""
 
 # 5. Python Virtual Environment Check
-echo "--- [5/7] Python Virtual Environment Check ---"
+echo "--- [5/8] Python Virtual Environment Check ---"
 _PYTHON_PATH=$(which python3)
 echo "Python path: $_PYTHON_PATH"
 if [[ "$_PYTHON_PATH" == *"/venvs/ps11/"* ]]; then
@@ -114,7 +114,7 @@ fi
 echo ""
 
 # 6. PyTorch & CUDA Check
-echo "--- [6/7] PyTorch CUDA Check ---"
+echo "--- [6/8] PyTorch CUDA Check ---"
 python3 -c "
 import sys
 try:
@@ -141,7 +141,7 @@ fi
 echo ""
 
 # 7. NumPy & ROS Compatibility Check
-echo "--- [7/7] NumPy Version & rclpy Compatibility Check ---"
+echo "--- [7/8] NumPy Version & rclpy Compatibility Check ---"
 python3 -c "
 import sys
 import numpy as np
@@ -168,6 +168,22 @@ if [ $? -eq 0 ]; then
   echo "[PASS] NumPy version conforms to ROS 2 Jazzy requirements (<2.0)"
 else
   echo "[FAIL] NumPy compatibility check failed"
+  ALL_PASS=false
+fi
+# 8. Node Executable Shebang Check
+echo "--- [8/8] Node Executable Shebang Check ---"
+_EMULATOR_SCRIPT="${PS11_ROOT:-$SCRIPT_DIR/..}/ros2_ws/install/ps11_telemetry/lib/ps11_telemetry/link_emulator"
+if [ -f "$_EMULATOR_SCRIPT" ]; then
+  _SHEBANG=$(head -n 1 "$_EMULATOR_SCRIPT")
+  echo "link_emulator shebang: $_SHEBANG"
+  if [[ "$_SHEBANG" == *"venvs/ps11/bin/python"* ]] || [[ "$_SHEBANG" == "#!/usr/bin/env python3"* ]]; then
+    echo "[PASS] Installed node script uses venv Python interpreter"
+  else
+    echo "[FAIL] Installed node script uses unexpected interpreter ($_SHEBANG)"
+    ALL_PASS=false
+  fi
+else
+  echo "[FAIL] $_EMULATOR_SCRIPT not found. Build workspace first."
   ALL_PASS=false
 fi
 echo ""
