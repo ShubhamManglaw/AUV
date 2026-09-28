@@ -85,7 +85,7 @@ def extract_trashcan_cutout(
     segmentation: list[list[float]],
     bbox: list[float],
 ) -> np.ndarray:
-    """Extract object cutout using polygon segmentation mask with anti-aliasing."""
+    """Extract object cutout using polygon segmentation mask with anti-aliasing (alpha cut-out only)."""
     h_img, w_img = img_bgr.shape[:2]
     mask = np.zeros((h_img, w_img), dtype=np.uint8)
 
@@ -105,10 +105,10 @@ def extract_trashcan_cutout(
     sub_bgr = img_bgr[y0:y1, x0:x1]
     sub_mask = mask[y0:y1, x0:x1]
 
-    # Slight blur on mask edge for smooth anti-aliased alpha blending
-    sub_mask = cv2.GaussianBlur(sub_mask, (5, 5), sigmaX=1.2)
+    # Clean anti-aliased edge
+    sub_mask = cv2.GaussianBlur(sub_mask, (3, 3), sigmaX=0.6)
 
-    # Convert BGR to RGB and add Alpha
+    # Keep original photo's texture and colors exactly
     sub_rgb = cv2.cvtColor(sub_bgr, cv2.COLOR_BGR2RGB)
     sub_rgba = np.dstack([sub_rgb, sub_mask])
     return sub_rgba
@@ -142,14 +142,15 @@ def extract_duo_cutout(
     # Normalized radius
     r = np.sqrt(((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2)
 
-    # Alpha: 1.0 inside r <= 0.65, smooth cosine decay to 0 at r = 1.0
+    # Alpha: solid 1.0 inside r <= 0.85, cosine feather to edge at r = 1.0
     alpha = np.zeros((sh, sw), dtype=np.float32)
-    inner = r <= 0.65
-    feather = (r > 0.65) & (r <= 1.0)
+    inner = r <= 0.85
+    feather = (r > 0.85) & (r <= 1.0)
     alpha[inner] = 1.0
-    alpha[feather] = 0.5 * (1.0 + np.cos(np.pi * (r[feather] - 0.65) / 0.35))
+    alpha[feather] = 0.5 * (1.0 + np.cos(np.pi * (r[feather] - 0.85) / 0.15))
     alpha_u8 = (alpha * 255.0).astype(np.uint8)
 
+    # Keep original photo's texture and colors exactly
     sub_rgb = cv2.cvtColor(sub_bgr, cv2.COLOR_BGR2RGB)
     sub_rgba = np.dstack([sub_rgb, alpha_u8])
     return sub_rgba
@@ -190,23 +191,23 @@ def generate_procedural_sand_tile(
     ripple_phase = (2.0 * math.pi / wavelength) * (
         xx * math.cos(theta) + yy * math.sin(theta)
     )
-    # Asymmetric underwater sand ripple shape
+    # Asymmetric underwater sand ripple shape (subtle waves)
     ripples = np.sin(ripple_phase) + 0.3 * np.sin(2.0 * ripple_phase + 0.4)
-    ripple_intensity = ripples * 11.0  # +/- 14 intensity
+    ripple_intensity = ripples * 4.0  # gentle ripple gradient
 
     # 2. Large scale dune variation using downscaled smoothed noise
     small_size = 64
     dune_noise = rng.normal(0.0, 1.0, (small_size, small_size)).astype(np.float32)
     dunes = cv2.resize(dune_noise, (width_px, height_px), interpolation=cv2.INTER_CUBIC)
-    dune_intensity = dunes * 14.0
+    dune_intensity = dunes * 5.0
 
-    # 3. Fine grain noise
-    grain = rng.uniform(-6.0, 6.0, (height_px, width_px)).astype(np.float32)
+    # 3. Fine grain noise (subtle grain without dark urchin-like clusters)
+    grain = rng.uniform(-2.0, 2.0, (height_px, width_px)).astype(np.float32)
 
-    # Base sand RGB color: clean sandy ocean floor with underwater visibility
-    base_r = 188.0
-    base_g = 172.0
-    base_b = 138.0
+    # Base sand RGB color: brighter, warmer sand for high decal silhouette contrast
+    base_r = 210.0
+    base_g = 195.0
+    base_b = 160.0
 
     # Composite luminance modulation
     delta = ripple_intensity + dune_intensity + grain
@@ -323,6 +324,10 @@ def generate_seabed(
     config_path: Path,
     scenario_name: str = "demo",
     manifest_path: Path = MANIFEST_PATH,
+    seed_override: int | None = None,
+    num_objects_override: int | None = None,
+    objects_output_yaml: Path | None = None,
+    update_sdf: bool = True,
 ) -> list[dict[str, Any]]:
     """Execute complete seabed generation pipeline for the given scenario."""
     # 1. Load configs
@@ -349,16 +354,20 @@ def generate_seabed(
     leg_spacing = float(scen_mission["leg_spacing_m"])
     seabed_z = float(scen_mission["seabed_z_m"])
 
-    seed = int(config.get("seed", 42))
+    seed = seed_override if seed_override is not None else int(config.get("seed", 42))
     px_per_m = int(config.get("pixel_density_px_per_m", 160))
     tile_size_m = float(config.get("tile_size_m", 20.0))
     min_spacing = float(config.get("min_object_spacing_m", 2.0))
     size_ranges = config.get("object_size_ranges_m", {})
 
     scenario_cfg = config["scenarios"][scenario_name]
-    num_objects = int(scenario_cfg.get("num_objects", 12))
-    num_debris = int(scenario_cfg.get("num_debris", 5))
-    num_marine = int(scenario_cfg.get("num_marine_life", 7))
+    num_objects = (
+        num_objects_override
+        if num_objects_override is not None
+        else int(scenario_cfg.get("num_objects", 12))
+    )
+    num_debris = round(num_objects * 0.4)
+    num_marine = num_objects - num_debris
 
     # Fixed seed RNG
     rng = random.Random(seed)
@@ -374,9 +383,11 @@ def generate_seabed(
     # 3. Select 12 objects: 5 debris, 3 starfish, 2 sea_urchin, 2 scallop
     target_counts = {
         id_to_class[0]: num_debris,
-        id_to_class[1]: 3,
-        id_to_class[2]: 2,
-        id_to_class[3]: 2,
+        id_to_class[1]: round(num_marine * 3 / 7),
+        id_to_class[2]: round(num_marine * 2 / 7),
+        id_to_class[3]: num_marine
+        - round(num_marine * 3 / 7)
+        - round(num_marine * 2 / 7),
     }
     assert sum(target_counts.values()) == num_objects
     assert sum(v for k, v in target_counts.items() if k != id_to_class[0]) == num_marine
@@ -418,23 +429,57 @@ def generate_seabed(
     # Compute leg positions dynamically from mission.yaml
     num_legs = round(survey_h / leg_spacing) + 1
     leg_y_coords = [survey_oy + i * leg_spacing for i in range(num_legs)]
+    x_leg_start = survey_ox
+    span = survey_w
     placed_coords: list[tuple[float, float]] = []
 
-    # Place 2 objects per leg within survey swath
-    x_leg_start = survey_ox
-    x_leg_end = survey_ox + survey_w
-    span = x_leg_end - x_leg_start
+    if num_objects == 12:
+        for i, leg_y in enumerate(leg_y_coords):
+            # Object 1 in first third of leg
+            x1 = round(
+                rng.uniform(x_leg_start + 0.20 * span, x_leg_start + 0.35 * span), 2
+            )
+            y1 = round(leg_y + rng.uniform(-0.25, 0.25), 2)
 
-    for i, leg_y in enumerate(leg_y_coords):
-        # Object 1 in first third of leg
-        x1 = round(rng.uniform(x_leg_start + 0.20 * span, x_leg_start + 0.35 * span), 2)
-        y1 = round(leg_y + rng.uniform(-0.25, 0.25), 2)
+            # Object 2 in final third of leg
+            x2 = round(
+                rng.uniform(x_leg_start + 0.65 * span, x_leg_start + 0.80 * span), 2
+            )
+            y2 = round(leg_y + rng.uniform(-0.25, 0.25), 2)
 
-        # Object 2 in final third of leg
-        x2 = round(rng.uniform(x_leg_start + 0.65 * span, x_leg_start + 0.80 * span), 2)
-        y2 = round(leg_y + rng.uniform(-0.25, 0.25), 2)
+            placed_coords.extend([(x1, y1), (x2, y2)])
+    else:
+        # Distribute objects along lawnmower survey legs so survey paths have 1-4 objects in view
+        attempts = 0
+        leg_indices = list(range(len(leg_y_coords)))
+        while len(placed_coords) < num_objects and attempts < 30000:
+            attempts += 1
+            leg_idx = rng.choice(leg_indices)
+            leg_y = leg_y_coords[leg_idx]
+            cand_x = round(rng.uniform(x_leg_start + 1.5, x_leg_start + span - 1.5), 2)
+            # Small lateral offset within camera footprint (~0.7m)
+            cand_y = round(leg_y + rng.uniform(-0.7, 0.7), 2)
+            if all(
+                math.hypot(cand_x - px, cand_y - py) >= min_spacing
+                for px, py in placed_coords
+            ):
+                placed_coords.append((cand_x, cand_y))
 
-        placed_coords.extend([(x1, y1), (x2, y2)])
+        # Fallback to general area placement if needed
+        while len(placed_coords) < num_objects and attempts < 50000:
+            attempts += 1
+            cand_x = round(rng.uniform(survey_ox + 1.0, survey_ox + survey_w - 1.0), 2)
+            cand_y = round(rng.uniform(survey_oy + 1.0, survey_oy + survey_h - 1.0), 2)
+            if all(
+                math.hypot(cand_x - px, cand_y - py) >= min_spacing
+                for px, py in placed_coords
+            ):
+                placed_coords.append((cand_x, cand_y))
+
+        if len(placed_coords) < num_objects:
+            raise RuntimeError(
+                f"Could not place {num_objects} objects with {min_spacing}m spacing in area!"
+            )
 
     # Verify spacing >= min_spacing (2.0 m)
     for i in range(len(placed_coords)):
@@ -462,7 +507,9 @@ def generate_seabed(
 
         if cand["dataset"] == "trashcan":
             cutout_rgba = extract_trashcan_cutout(
-                img_bgr, cand["segmentation"], cand["bbox"]
+                img_bgr,
+                cand["segmentation"],
+                cand["bbox"],
             )
         else:
             cutout_rgba = extract_duo_cutout(img_bgr, cand["bbox"])
@@ -486,6 +533,33 @@ def generate_seabed(
         )
         final_cutout = np.array(pil_cutout)
         extracted_cutouts.append(final_cutout)
+
+        # Compute tight boundary polygon of non-transparent decal pixels in local meters
+        alpha = final_cutout[:, :, 3]
+        mask = (alpha > 20).astype(np.uint8)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cw_f = float(final_cutout.shape[1])
+        ch_f = float(final_cutout.shape[0])
+        if contours:
+            all_pts = np.vstack(contours).reshape(-1, 2)
+            hull = cv2.convexHull(all_pts)
+            poly = cv2.approxPolyDP(hull, epsilon=1.0, closed=True).reshape(-1, 2)
+            outline_m = [
+                [
+                    round(float(px - cw_f / 2.0) / px_per_m, 4),
+                    round(float(-(py - ch_f / 2.0)) / px_per_m, 4),
+                ]
+                for px, py in poly
+            ]
+        else:
+            half = obj["size_m"] / 2.0
+            outline_m = [
+                [-half, -half],
+                [half, -half],
+                [half, half],
+                [-half, half],
+            ]
+        obj["outline_m"] = outline_m
 
     # 6. Seabed Tiling
     # Demo scenario: 50 m x 30 m -> covered by 3 x 2 grid of 20 m tiles:
@@ -568,7 +642,25 @@ def generate_seabed(
             tile_textures_dir.mkdir(parents=True, exist_ok=True)
 
             texture_path = tile_textures_dir / f"{tile_name}.png"
-            cv2.imwrite(str(texture_path), cv2.cvtColor(tile_rgb, cv2.COLOR_RGB2BGR))
+            bgr_tile = cv2.cvtColor(tile_rgb, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(str(texture_path), bgr_tile)
+
+            # Also write directly to install share directory so Gazebo immediately sees updated textures
+            install_textures_dir = (
+                WORKSPACE_ROOT
+                / "ros2_ws"
+                / "install"
+                / "ps11_gazebo"
+                / "share"
+                / "ps11_gazebo"
+                / "models"
+                / tile_name
+                / "materials"
+                / "textures"
+            )
+            if install_textures_dir.parent.parent.exists():
+                install_textures_dir.mkdir(parents=True, exist_ok=True)
+                cv2.imwrite(str(install_textures_dir / f"{tile_name}.png"), bgr_tile)
 
             # Write model.config
             config_xml = f"""<?xml version="1.0"?>
@@ -633,22 +725,26 @@ def generate_seabed(
     # Sort by ID
     selected_objects.sort(key=lambda o: o["id"])
     for obj in selected_objects:
-        output_objects.append(
-            {
-                "id": int(obj["id"]),
-                "class": str(obj["class"]),
-                "x": float(obj["x"]),
-                "y": float(obj["y"]),
-                "z": float(obj["z"]),
-                "size_m": float(obj["size_m"]),
-                "source_image": str(
-                    Path(obj["source_image"]).relative_to(WORKSPACE_ROOT)
-                ),
-                "source_split": "test",
-            }
-        )
+        entry = {
+            "id": int(obj["id"]),
+            "class": str(obj["class"]),
+            "x": float(obj["x"]),
+            "y": float(obj["y"]),
+            "z": float(obj["z"]),
+            "size_m": float(obj["size_m"]),
+            "source_image": str(Path(obj["source_image"]).relative_to(WORKSPACE_ROOT)),
+            "source_split": "test",
+        }
+        if "yaw_deg" in obj:
+            entry["yaw_deg"] = float(obj["yaw_deg"])
+        if "outline_m" in obj:
+            entry["outline_m"] = obj["outline_m"]
+        output_objects.append(entry)
 
-    WORLD_OBJECTS_YAML.parent.mkdir(parents=True, exist_ok=True)
+    target_yaml = (
+        objects_output_yaml if objects_output_yaml is not None else WORLD_OBJECTS_YAML
+    )
+    target_yaml.parent.mkdir(parents=True, exist_ok=True)
     yaml_dict = {
         "metadata": {
             "scenario": scenario_name,
@@ -658,15 +754,14 @@ def generate_seabed(
         },
         "objects": output_objects,
     }
-    with open(WORLD_OBJECTS_YAML, "w", encoding="utf-8") as f:
+    with open(target_yaml, "w", encoding="utf-8") as f:
         yaml.dump(yaml_dict, f, sort_keys=False, default_flow_style=False)
 
-    print(
-        f"[make_seabed] Written {len(output_objects)} objects to {WORLD_OBJECTS_YAML}"
-    )
+    print(f"[make_seabed] Written {len(output_objects)} objects to {target_yaml}")
 
     # 8. Update ocean_demo_kinematic.sdf to include tiles
-    update_world_sdf(generated_tiles)
+    if update_sdf:
+        update_world_sdf(generated_tiles)
     return output_objects
 
 

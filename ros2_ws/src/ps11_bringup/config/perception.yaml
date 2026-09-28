@@ -8,7 +8,7 @@ underwater_effect:
   noise_sigma: 0.02
 
 detector:
-  model_path: "ml/weights/best.pt"
+  model_path: "ml/weights/best_v2.pt"
   imgsz: 640
   conf_threshold: 0.35
   iou_threshold: 0.5
