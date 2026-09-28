@@ -21,7 +21,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T2.3 | Evaluation and export | Dev | 2 | done | T2.2 | Test split mAP50=0.703, ONNX exported and verified with onnx.checker |
 | T2.4 | Underwater effect node | Dev | 2 | optional | T1.2 | Do if time, or if sim detections are poor |
 | T2.5 | Detector node | Dev | 2 | done | T2.3 | Rate-capped YOLO (5.00 Hz measured), annotated image, H3 banner, detectability check across 12 objects logged to results/bench/ |
-| T2.6 | Tracker node | Dev | 3 | todo | T2.5 | ByteTrack, confirmed tracks only |
+| T2.6 | Tracker node | Dev | 3 | done | T2.5 | ByteTrack, confirmed tracks (min_hits=5, mean_conf>=0.4, majority-vote class), unit tests passed |
 | T2.7 | Geolocator node | Dev | 3 | todo | T2.6, T1.3 | Ray-to-seabed projection, uncertainty |
 | T2.8 | Contact database node | Dev | 3 | todo | T2.7 | Observation fusion |
 | T2.9 | Contingency: fine-tune on sim frames | Dev | 2–3 | done | T1.4, T2.5 | 10 seeds (101-110, 1929 frames, 3795 labels, median offset 2.06 px); test mAP50 preserved: 0.705 vs 0.703 (+0.002, debris +0.035); best_v2.pt deployed |
