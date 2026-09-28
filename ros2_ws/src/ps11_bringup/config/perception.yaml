@@ -14,6 +14,7 @@ detector:
   iou_threshold: 0.5
   device: "cuda:0"
   max_rate_hz: 5.0  # ASSUMPTION: detector rate capped to Jetson-measured rate (or 5 Hz pending benchmark)
+  camera_rate_hz: 5.0  # Measured reliable sensor rate (>= 5 Hz in rclpy SensorDataQoS, 10 Hz nominal)
   annotate_rate_hz: 5.0
 
 tracker:

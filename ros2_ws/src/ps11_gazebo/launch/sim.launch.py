@@ -97,7 +97,7 @@ def generate_launch_description() -> LaunchDescription:
     # Gazebo Sim Launch
     gz_args = PythonExpression(
         [
-            "'-r ' + ('-s ' if '",
+            "'-r ' + ('-s --headless-rendering ' if '",
             LaunchConfiguration("gui"),
             "' == 'false' else '') + '",
             world_path,
@@ -150,6 +150,39 @@ def generate_launch_description() -> LaunchDescription:
         output="screen",
     )
 
+    # Fast image transport bridge for camera RGB and depth (§8.4, T1.2)
+    image_bridge_rgb = Node(
+        package="ros_gz_image",
+        executable="image_bridge",
+        name="image_bridge_rgb",
+        arguments=["/vehicle/camera/image"],
+        remappings=[
+            ("/vehicle/camera/image", "/vehicle/camera/image_raw"),
+        ],
+        parameters=[
+            {
+                "use_sim_time": True,
+            }
+        ],
+        output="screen",
+    )
+
+    image_bridge_depth = Node(
+        package="ros_gz_image",
+        executable="image_bridge",
+        name="image_bridge_depth",
+        arguments=["/vehicle/camera/depth_image"],
+        remappings=[
+            ("/vehicle/camera/depth_image", "/vehicle/camera/depth"),
+        ],
+        parameters=[
+            {
+                "use_sim_time": True,
+            }
+        ],
+        output="screen",
+    )
+
     return LaunchDescription(
         [
             gz_resource_path,
@@ -166,5 +199,7 @@ def generate_launch_description() -> LaunchDescription:
             robot_state_publisher_node,
             spawn_vehicle,
             bridge_node,
+            image_bridge_rgb,
+            image_bridge_depth,
         ]
     )

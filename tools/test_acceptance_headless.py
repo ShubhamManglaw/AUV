@@ -4,6 +4,7 @@
 import os
 import signal
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -67,6 +68,7 @@ def main():
         env=env,
         stdout=sim_log,
         stderr=subprocess.STDOUT,
+        start_new_session=True,
     )
 
     print("Waiting 5s for Gazebo to load and vehicle to spawn at (0, 0, -12.5)...")
@@ -161,13 +163,65 @@ def main():
 
     finally:
         print("\nShutting down simulation...")
-        sim_proc.send_signal(signal.SIGINT)
+        pgid = None
         try:
-            sim_proc.wait(timeout=4)
-        except subprocess.TimeoutExpired:
-            sim_proc.kill()
+            pgid = os.getpgid(sim_proc.pid)
+            os.killpg(pgid, signal.SIGINT)
+        except ProcessLookupError:
+            pass
+
+        # Wait up to 10s
+        deadline = time.time() + 10.0
+        while time.time() < deadline and sim_proc.poll() is None:
+            time.sleep(0.5)
+
+        if sim_proc.poll() is None and pgid is not None:
+            try:
+                os.killpg(pgid, signal.SIGTERM)
+                time.sleep(2.0)
+            except ProcessLookupError:
+                pass
+
+        if sim_proc.poll() is None and pgid is not None:
+            try:
+                os.killpg(pgid, signal.SIGKILL)
+                time.sleep(1.0)
+            except ProcessLookupError:
+                pass
+
         sim_log.close()
-        print("Simulation stopped cleanly.")
+        subprocess.run(["bash", "tools/sim_cleanup.sh"], check=False)
+
+        # Check for any leftover simulation processes
+        patterns = [
+            "gz sim -r",
+            "parameter_bridge",
+            "image_bridge",
+            "robot_state_publisher",
+            "gz topic",
+            "ros2 launch ps11",
+        ]
+        leftover = []
+        for pat in patterns:
+            res = subprocess.run(
+                ["pgrep", "-f", pat],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            pids = [
+                p
+                for p in res.stdout.strip().split()
+                if p and int(p) not in (os.getpid(), os.getppid())
+            ]
+            if pids:
+                leftover.extend(pids)
+
+        if leftover:
+            print(f"FAILED: Remaining simulation processes detected: {leftover}")
+            sys.exit(1)
+        else:
+            print("Simulation stopped cleanly, no remaining processes.")
 
 
 if __name__ == "__main__":

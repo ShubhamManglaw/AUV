@@ -12,7 +12,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T0.3 | Interfaces and common helpers | Dev | 1 | done | T0.1 | ps11_interfaces, ps11_common, config YAMLs; tests and rosidl verified |
 | T1.0 | SolidWorks export [HUMAN] | Team | 1 (tonight) | done | None | ROS 2 exporter export committed to tools/sw_export_raw/ps11_vehicle_export |
 | T1.1 | Convert export to ROS 2 | Dev | 2 | done | T0.3, T1.0 | convert_sw_export.py, ps11_description (meshes decimated to 50k, URDF REP-103 validated) |
-| T1.2 | Worlds, spawn, sensors and bridge | Dev | 2 | done | T1.1 | Gazebo Harmonic kinematic world, sensors (RGB-D, IMU, altimeter), bridge, dGPU verified |
+| T1.2 | Worlds, spawn, sensors and bridge | Dev | 2 | done | T1.1 | Gazebo Harmonic kinematic world, camera & depth_camera (640x480, 10 Hz / >=5 Hz in rclpy SensorDataQoS, 10 Hz default QoS), IMU 100 Hz, odom 50 Hz, bridge, dGPU verified |
 | T1.3 | Navigation sensor models | Dev | 2 | todo | T1.2 | odom_noise, depth_sim, range_adapter |
 | T1.4 | Seabed decal generator | Dev | 3 | todo | T1.2, T2.1 | **demo scenario only**; eval scenario deferred |
 | T1.5 | Waypoint follower | Dev | 2 | todo | T1.3 | Lawnmower, kinematic control |
