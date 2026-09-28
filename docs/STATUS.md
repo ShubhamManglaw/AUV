@@ -31,13 +31,13 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T3.4 | Surface decoder | Dev | 3 | done | T3.1 | /link/rx only (H1), /surface/contacts, /surface/vehicle_track, /surface/markers published |
 | T4.1 | Bringup | Dev | 4 | done | T1.5, T2.8, T3.3, T3.4 | vehicle, surface, demo launch files; all 15 nodes verified in headless 60s run |
 | T4.2 | Metrics node | Dev | 4 | done | T3.4 | Counters, summary.json; recall over all objects ("GT in view" cut) |
-| T4.3 | Foxglove layout | Dev | 4 | todo | T4.1 | Operator layout, titles, banner |
+| T4.3 | Foxglove layout | Dev | 4 | done | T4.1 | Operator layout, titles, banner |
 | T4.4 | Integration and tuning | Dev | 4 | todo | All above | Tune and report on demo scenario, labelled as the tuned scenario |
 | T4.5 | Experiments and charts | Dev | 4 | todo | T4.6 | H.264 comparison and charts from the recorded run; baseline run only if fifo policy exists; generic_1k deferred |
 | T4.6 | Recording the demo | Dev | 4 | todo | T4.3 | MCAP bag + OBS video by mid-afternoon; copy to shared drive and USB |
 | T4.7 | Deck update and rehearsal | Team (deck) + Dev (numbers) | 4 | todo | T4.5, T4.6, T5.2 | Placeholders, slide 10/11 phase status, measured numbers, rehearsal |
 | T5.1 | Jetson reflash [HUMAN] | Team | 2 | todo | None | JetPack 6.x, trtexec, tegrastats, device.md |
-| T5.2 | Jetson benchmark | Dev (script) + Team (run) | 3 | todo | T2.3, T5.1 | Dev writes jetson/benchmark.sh; Team runs it and commits logs |
+| T5.2 | Jetson benchmark | Dev (script) + Team (run) | 3 | in progress | T2.3, T5.1 | Dev kit ready (benchmark.sh, parse_results.py, README.md; untested on device); pending team hardware run |
 | T5.3 | Jetson video | Team | 3 | todo | T5.2 | Not committed; keep in shared drive |
 | **M2: Dynamic Vehicle & Jetson-in-the-Loop** | | | | | | |
 | T6.1 | Dynamic vehicle model | Dev | — | todo | M1 | Thrusters, Buoyancy, Hydrodynamics |
