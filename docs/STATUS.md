@@ -13,9 +13,9 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T1.0 | SolidWorks export [HUMAN] | Team | 1 (tonight) | done | None | ROS 2 exporter export committed to tools/sw_export_raw/ps11_vehicle_export |
 | T1.1 | Convert export to ROS 2 | Dev | 2 | done | T0.3, T1.0 | convert_sw_export.py, ps11_description (meshes decimated to 50k, URDF REP-103 validated) |
 | T1.2 | Worlds, spawn, sensors and bridge | Dev | 2 | done | T1.1 | Gazebo Harmonic kinematic world, camera & depth_camera (640x480, 10 Hz / >=5 Hz in rclpy SensorDataQoS, 10 Hz default QoS), IMU 100 Hz, odom 50 Hz, bridge, dGPU verified |
-| T1.3 | Navigation sensor models | Dev | 2 | todo | T1.2 | odom_noise, depth_sim, range_adapter |
+| T1.3 | Navigation sensor models | Dev | 2 | done | T1.2 | odom_noise (seed: 0, 0.5% drift, 0.5° bias, TF map->base_link), depth_sim, range_adapter; unit tests pass, sim spawn alt/depth verified |
 | T1.4 | Seabed decal generator | Dev | 3 | todo | T1.2, T2.1 | **demo scenario only**; eval scenario deferred |
-| T1.5 | Waypoint follower | Dev | 2 | todo | T1.3 | Lawnmower, kinematic control |
+| T1.5 | Waypoint follower | Dev | 2 | done | T1.3 | Lawnmower (LOS straight legs, axis-aligned step-overs), demo completed in 6.6 min, max cross-track 0.880 m <= 1.5 m, TRANSIT->SURVEY->RETURN->IDLE, lawnmower.png |
 | T2.1 | Datasets | Dev (script) + Team (downloads) | 1 | done | T0.2 | TrashCan & DUO mapped, video-level split, test_manifest.txt generated |
 | T2.2 | Training | Dev | 1 (overnight) | done | T2.1 | 129 epochs in 2.15 h, best.pt at epoch 109, early stopping patience=20 |
 | T2.3 | Evaluation and export | Dev | 2 | done | T2.2 | Test split mAP50=0.703, ONNX exported and verified with onnx.checker |
