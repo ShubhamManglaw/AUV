@@ -13,7 +13,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T1.0 | SolidWorks export [HUMAN] | Team | 1 (tonight) | done | None | ROS 2 exporter export committed to tools/sw_export_raw/ps11_vehicle_export |
 | T1.1 | Convert export to ROS 2 | Dev | 2 | done | T0.3, T1.0 | convert_sw_export.py, ps11_description (meshes decimated to 50k, URDF REP-103 validated) |
 | T1.2 | Worlds, spawn, sensors and bridge | Dev | 2 | done | T1.1 | Gazebo Harmonic kinematic world, camera & depth_camera (640x480, 10 Hz / >=5 Hz in rclpy SensorDataQoS, 10 Hz default QoS), IMU 100 Hz, odom 50 Hz, bridge, dGPU verified |
-| T1.3 | Navigation sensor models | Dev | 2 | todo | T1.2 | odom_noise, depth_sim, range_adapter |
+| T1.3 | Navigation sensor models | Dev | 2 | done | T1.2 | odom_noise/depth_sim/range_adapter + nav.yaml. Phase 1: 10/10 pytest, ruff clean. Phase 2 runtime accepted: 96.492 m controlled GT-distance run, final horizontal nav error 0.4337 m, covariance[0]=[7]=0.24276765 / [35]=0.00100000 verified vs model, spawn altitude 2.5002 m, TF map→base_link with 0.500° heading bias, clean-graph rates ~50 Hz GT / ~20 Hz nav/odom / ~10 Hz depth+altitude. Runtime fix: nav.yaml restructured to ROS 2 `ros__parameters:` schema (structure only) |
 | T1.4 | Seabed decal generator | Dev | 3 | todo | T1.2, T2.1 | **demo scenario only**; eval scenario deferred |
 | T1.5 | Waypoint follower | Dev | 2 | todo | T1.3 | Lawnmower, kinematic control |
 | T2.1 | Datasets | Dev (script) + Team (downloads) | 1 | done | T0.2 | TrashCan & DUO mapped, video-level split, test_manifest.txt generated |

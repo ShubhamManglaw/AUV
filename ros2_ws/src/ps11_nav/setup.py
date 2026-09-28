@@ -18,6 +18,10 @@ setup(
     license="Apache-2.0",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": [],
+        "console_scripts": [
+            "odom_noise = ps11_nav.odom_noise_node:main",
+            "depth_sim = ps11_nav.depth_sim_node:main",
+            "range_adapter = ps11_nav.range_adapter_node:main",
+        ],
     },
 )

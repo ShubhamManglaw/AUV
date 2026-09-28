@@ -37,3 +37,17 @@ All notable changes and interface updates to the PS11-AUV project will be docume
 
 - §11.1 plan update: Surface decoder cannot access vehicle odometry per honesty rule H1. Replaced odometry-based mission start with shared parameter `mission_start_s` in `scheduler.yaml` (default 0.0 = sim start), read by both `scheduler` and `surface_decoder`.
 
+## T1.3: navigation sensor models
+
+- Implemented ROS 2 nodes in `ps11_nav`: `odom_noise` (subscribes `/sim/gt/odom`, publishes `/vehicle/nav/odom` at 20 Hz + TF `map → base_link`; horizontal random-walk drift 0.5 % of distance travelled plus constant 0.5° heading bias; covariance filled from the model), `depth_sim` (`depth = −z + N(0, 0.02 m)` on `/vehicle/depth`), `range_adapter` (`/vehicle/altimeter/scan` LaserScan → `/vehicle/altitude` Range). Pure model logic is ROS-free (`ps11_nav/error_model.py`) with 10 unit tests.
+- New configuration parameters in `nav.yaml`: `odom_noise.publish_rate_hz` (20.0), `odom_noise.seed` (42), `depth_sim.rate_hz` (10.0), `depth_sim.seed` (42).
+- **ROS-parameter-file schema correction** (runtime defect found during Phase 2 integration): `nav.yaml` was restructured to the required form
+  ```yaml
+  <node_name>:
+    ros__parameters:
+      ...
+  ```
+  The previous file omitted the `ros__parameters:` level, so all three nodes failed in `rclpy.init`. Structure-only fix — parameter names and values unchanged; **not an interface change**. Not caught by the ROS-free T1.3 unit tests because those tests do not invoke the ROS parameter parser.
+- Measured evidence (Phase 1 + Phase 2, clean graph): fixed-seed 100 m unit-test horizontal error 0.2074 m; clean-graph rates ~50 Hz `/sim/gt/odom`, ~20 Hz `/vehicle/nav/odom`, ~10 Hz `/vehicle/depth` and `/vehicle/altitude`, ~20 Hz `/tf`; spawn altitude 2.5002 m; 96.492 m controlled navigation acceptance run (actual integrated GT arc length) with final horizontal navigation error 0.4337 m; published covariance[0]=[7]=0.24276765 vs expected 0.24276765, covariance[35]=0.00100000; TF heading bias 0.500°.
+- Shared external interfaces (topic names, message definitions, codec, golden vectors, class IDs, link profiles) unchanged.
+

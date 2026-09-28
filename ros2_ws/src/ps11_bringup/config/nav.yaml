@@ -1,16 +1,27 @@
 # Navigation sensor models parameters (§9.2)
 odom_noise:
-  # Horizontal position random walk std grows at 0.5% of distance travelled
-  position_drift_rate: 0.005
-  # Constant heading bias of 0.5 degrees (0.00872665 rad)
-  heading_bias_rad: 0.00872665
-  initial_covariance_pos: 0.01
-  initial_covariance_heading: 0.001
+  ros__parameters:
+    # Horizontal position random walk std grows at 0.5% of distance travelled
+    position_drift_rate: 0.005
+    # Constant heading bias of 0.5 degrees (0.00872665 rad)
+    heading_bias_rad: 0.00872665
+    initial_covariance_pos: 0.01
+    initial_covariance_heading: 0.001
+    # Publication rate of /vehicle/nav/odom and TF map->base_link (plan 14.1: 20 Hz)
+    publish_rate_hz: 20.0
+    # Fixed seed for the reproducible random walk
+    seed: 42
 
 depth_sim:
-  # depth = -z + N(0, 0.02 m)
-  noise_sigma_m: 0.02
+  ros__parameters:
+    # depth = -z + N(0, 0.02 m)
+    noise_sigma_m: 0.02
+    # Publication rate of /vehicle/depth (plan 14.1: 10 Hz)
+    rate_hz: 10.0
+    # Fixed seed for the depth noise
+    seed: 42
 
 range_adapter:
-  min_range_m: 0.2
-  max_range_m: 50.0
+  ros__parameters:
+    min_range_m: 0.2
+    max_range_m: 50.0
