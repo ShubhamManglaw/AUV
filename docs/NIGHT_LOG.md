@@ -9,11 +9,12 @@
   - **Q3 (T2.8 Contact Database Node):** DONE (Inverse-variance fusion, spatial gating, 2 Hz publisher, unit tests passed)
   - **Q4 (T3.3 Telemetry Scheduler Node):** DONE (`semantic` policy, heartbeat <= 15s, debris first, 90s e2e verified without Gazebo)
   - **Q5 (T4.2 Metrics Node):** DONE (Live counters, JPEG quality 75 live measurement, matching logic, summary.json writer)
-- **Tasks In Progress / Next:** Q6 (T4.1 Bringup Launch Files)
+  - **Q6 (T4.1 Bringup Launch Files):** DONE (vehicle, surface, demo launch files; all 15 nodes verified in headless 60s run)
+- **Tasks In Progress / Next:** Q7 (Full-chain Run: demo.launch.py headless ~5 min)
 - **Three Most Important Items for Human Review:**
-  1. **Telemetry & Metrics Infrastructure Operational (Q4, Q5):** Both `scheduler` and `metrics` nodes are verified. `metrics` publishes 1 Hz `/eval/counters` and dumps `results/run_<timestamp>/summary.json` at shutdown with real JPEG quality 75 size and acoustic compression ratios.
-  2. **Detector Retention & Deployment (Q0 / T2.9):** The fine-tuned weights `best_v2.pt` beat baseline on the 2,229-image real test set (mAP50 0.705 vs 0.703; debris mAP50 improved +0.035 from 0.351 to 0.386). Deployed to `ros2_ws/src/ps11_bringup/config/perception.yaml`.
-  3. **Full Pipeline Ready for Bringup:** All subcomponents (sim, nav, perception, telemetry, metrics) are verified; next is unifying bringup launch files (Q6).
+  1. **Complete 15-Node System Bringup Verified (Q6 / T4.1):** Single command `ros2 launch ps11_bringup demo.launch.py gui:=false record:=false` successfully spawned and connected all 15 nodes in §14.1 across Gazebo sim, nav, perception, telemetry, surface, metrics, and Foxglove bridge, running stable for >60 s.
+  2. **Telemetry & Metrics Infrastructure Operational (Q4, Q5):** Both `scheduler` and `metrics` nodes are verified. `metrics` publishes 1 Hz `/eval/counters` and dumps `results/run_<timestamp>/summary.json` at shutdown with real JPEG quality 75 size and acoustic compression ratios.
+  3. **Detector Retention & Deployment (Q0 / T2.9):** The fine-tuned weights `best_v2.pt` beat baseline on the 2,229-image real test set (mAP50 0.705 vs 0.703; debris mAP50 improved +0.035 from 0.351 to 0.386). Deployed to `ros2_ws/src/ps11_bringup/config/perception.yaml`.
 
 ---
 
@@ -278,6 +279,53 @@ $ timeout 5 ros2 run ps11_bringup metrics --ros-args -p scenario:=demo -p link_p
   "link_bitrate_bps": 64,
   "image_frames_counted": 0
 }
+```
+
+---
+
+## Q6 — T4.1 Bringup Launch Files
+- **Status:** DONE
+- **Deliverables:**
+  - `ros2_ws/src/ps11_bringup/launch/vehicle.launch.py` (starts nav models, waypoint follower, perception chain, scheduler)
+  - `ros2_ws/src/ps11_bringup/launch/surface.launch.py` (starts surface decoder)
+  - `ros2_ws/src/ps11_bringup/launch/demo.launch.py` (top-level bringup: Gazebo Harmonic, vehicle stack, link emulator, surface stack, metrics, foxglove_bridge, optional MCAP recording)
+  - `tools/test_bringup.py` (verification harness checking all 15 nodes and stability over >60 s)
+  - `tools/sim_cleanup.sh` (updated to clean all perception, telemetry, metrics, and bridge processes)
+- **Key Commands & Output (Verbatim):**
+```text
+$ python3 tools/test_bringup.py
+=== Cleaning up before bringup test ===
+cleanup done
+=== Launching demo.launch.py (headless, gui:=false, record:=false) ===
+Waiting 20s for all nodes to start up...
+
+--- Active Nodes in ros2 node list ---
+  /contact_db
+  /depth_sim
+  /detector
+  /foxglove_bridge
+  /geolocator
+  /image_bridge_depth
+  /image_bridge_rgb
+  /link_emulator
+  /metrics
+  /odom_noise
+  /range_adapter
+  /robot_state_publisher
+  /ros_gz_bridge
+  /scheduler
+  /surface_decoder
+  /tracker
+  /waypoint_follower
+
+--- Node Check Results ---
+PASSED: All 15 expected nodes are active!
+
+Monitoring for errors up to 60s...
+PASSED: demo.launch.py ran stable for >60s with all nodes active!
+
+=== Terminating demo.launch.py and cleaning up ===
+cleanup done
 ```
 
 ---
