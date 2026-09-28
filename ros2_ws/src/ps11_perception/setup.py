@@ -22,6 +22,7 @@ setup(
             "detector = ps11_perception.detector_node:main",
             "tracker = ps11_perception.tracker_node:main",
             "geolocator = ps11_perception.geolocator_node:main",
+            "contact_db = ps11_perception.contact_db_node:main",
         ],
     },
 )
