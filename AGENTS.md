@@ -15,6 +15,7 @@
 ## Environment
 - Ubuntu 24.04 (Xorg session), ROS 2 Jazzy, Gazebo Harmonic, Python 3.12.
 - Always `source tools/env.sh` first. Always build with `python -m colcon build --symlink-install` from `ros2_ws/` (never bare `colcon build`).
+- Always isolate node/runtime tests from any other live stack (permanent rule, T3.3 lesson): run them with a private `ROS_DOMAIN_ID` (e.g. 43) and, when Gazebo is involved, a private `GZ_PARTITION`. A demo stack from another checkout (e.g. `~/ps11-auv`) may be live on the shared domain and its publishers will contaminate topic-level tests.
 - Python packages need `[build_scripts] executable = /usr/bin/env python3` in `setup.cfg`.
 - Do not use `cv_bridge` in nodes; use `ps11_common.image_utils`.
 - Do not install system packages or change the numpy version without telling the human.
