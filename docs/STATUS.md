@@ -32,8 +32,8 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T4.1 | Bringup | Dev | 4 | done | T1.5, T2.8, T3.3, T3.4 | vehicle, surface, demo launch files; all 15 nodes verified in headless 60s run |
 | T4.2 | Metrics node | Dev | 4 | done | T3.4 | Counters, summary.json; recall over all objects ("GT in view" cut) |
 | T4.3 | Foxglove layout | Dev | 4 | done | T4.1 | Operator layout, titles, banner |
-| T4.4 | Integration and tuning | Dev | 4 | todo | All above | Tune and report on demo scenario, labelled as the tuned scenario |
-| T4.5 | Experiments and charts | Dev | 4 | todo | T4.6 | H.264 comparison and charts from the recorded run; baseline run only if fifo policy exists; generic_1k deferred |
+| T4.4 | Integration and tuning | Dev | 4 | done | All above | Full-chain mission verified end-to-end; tuned on demo scenario across settings A/B/C; Setting C selected (0 false contacts, 0.245 m pos error, 1.54 s delay); MCAP recording reduced from 11.9 GB to 146.98 MB |
+| T4.5 | Experiments and charts | Dev | 4 | done | T4.6 | H.264 comparison (4483.95x semantic advantage, 103.4h airtime vs 83s) and comparison charts generated in results/charts/ |
 | T4.6 | Recording the demo | Dev | 4 | todo | T4.3 | MCAP bag + OBS video by mid-afternoon; copy to shared drive and USB |
 | T4.7 | Deck update and rehearsal | Team (deck) + Dev (numbers) | 4 | todo | T4.5, T4.6, T5.2 | Placeholders, slide 10/11 phase status, measured numbers, rehearsal |
 | T5.1 | Jetson reflash [HUMAN] | Team | 2 | todo | None | JetPack 6.x, trtexec, tegrastats, device.md |

@@ -10,7 +10,7 @@ underwater_effect:
 detector:
   model_path: "ml/weights/best_v2.pt"
   imgsz: 640
-  conf_threshold: 0.35
+  conf_threshold: 0.25
   iou_threshold: 0.5
   device: "cuda:0"
   max_rate_hz: 5.0  # ASSUMPTION: detector rate capped to Jetson-measured rate (or 5 Hz pending benchmark)
@@ -19,8 +19,8 @@ detector:
 
 tracker:
   # ByteTrack parameters
-  min_hits: 5
-  min_mean_conf: 0.4
+  min_hits: 3
+  min_mean_conf: 0.3
   track_activation_threshold: 0.25
   lost_track_buffer: 30
   minimum_matching_threshold: 0.8
