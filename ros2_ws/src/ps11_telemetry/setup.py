@@ -21,6 +21,7 @@ setup(
         "console_scripts": [
             "link_emulator = ps11_telemetry.link_emulator_node:main",
             "surface_decoder = ps11_telemetry.surface_decoder_node:main",
+            "scheduler = ps11_telemetry.scheduler_node:main",
         ],
     },
 )
