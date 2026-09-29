@@ -374,11 +374,12 @@ cleanup done
 
 | Setting | Configuration | Contacts Onboard | Contacts at Surface | Correct Contacts | False Contacts | Mean Pos Error | Mean Onboard-to-Surface Latency | Bits Sent | Ratio vs JPEG | MCAP Bag Size |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **A (Baseline)** | `conf: 0.35`, `min_hits: 5`, `min_mean_conf: 0.4` | 1 | 1 | 1 | 0 | 0.305 m | 1.54 s | 5,312 bits | 43,260.79x | 160.65 MB |
-| **B** | `conf: 0.25`, `min_hits: 3`, `min_mean_conf: 0.4` | 1 | 1 | 1 | 0 | 0.245 m | 1.60 s | 5,312 bits | 41,056.68x | 155.75 MB |
-| **C (Selected)** | `conf: 0.25`, `min_hits: 3`, `min_mean_conf: 0.3` | **1** | **1** | **1** | **0** | **0.245 m** | **1.54 s** | **5,312 bits** | **37,206.73x** | **146.98 MB** |
+| **A (Baseline)** | `conf: 0.35`, `min_hits: 5`, `min_mean_conf: 0.4`, alt 2.5m, spacing 4m | 1 | 1 | 1 | 0 | 0.305 m | 1.54 s | 5,312 bits | 43,260.79x | 160.65 MB |
+| **B** | `conf: 0.25`, `min_hits: 3`, `min_mean_conf: 0.4`, alt 2.5m, spacing 4m | 1 | 1 | 1 | 0 | 0.245 m | 1.60 s | 5,312 bits | 41,056.68x | 155.75 MB |
+| **C (Selected)** | `conf: 0.25`, `min_hits: 3`, `min_mean_conf: 0.3`, alt 2.5m, spacing 4m | **1** | **1** | **1** | **0** | **0.245 m** | **1.54 s** | **5,312 bits** | **37,206.73x** | **146.98 MB** |
+| **D** | Setting C + `altitude: 1.8m`, `spacing: 3.0m` | 1 | 1 | 1 | 0 | 0.305 m | 1.04 s | 6,656 bits | 41,189.57x | 203.36 MB |
 
-**Selection Decision:** Setting C was selected as default in `perception.yaml` because it achieves the lowest position error (0.245 m), lowest onboard-to-operator latency (1.54 s), 0 false contacts, and smaller bag size (146.98 MB), while offering increased sensitivity for underwater targets.
+**Selection Decision:** Setting C is maintained as the default in `perception.yaml` and `mission.yaml` (2.5 m altitude / 4.0 m leg spacing restored per criteria). Setting D achieved 1 correct surface contact and 0 false contacts (same as C, not more), while requiring 7 passes instead of 5 (longer survey duration: 486s vs 390s, 6,656 bits vs 5,312 bits) with higher position error (0.305 m vs 0.245 m).
 
 ### Final Tuning Summary JSON (`results/summary_setting_C.json`)
 ```json
