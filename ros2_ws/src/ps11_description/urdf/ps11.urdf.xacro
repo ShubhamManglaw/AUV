@@ -94,6 +94,23 @@
       <camera_info_topic>/vehicle/camera/depth/camera_info</camera_info_topic>
       <gz_frame_id>camera_optical_frame</gz_frame_id>
     </sensor>
+    <light type="spot" name="camera_spotlight">
+      <cast_shadows>false</cast_shadows>
+      <diffuse>1.0 1.0 0.95 1.0</diffuse>
+      <specular>0.2 0.2 0.2 1.0</specular>
+      <attenuation>
+        <range>20.0</range>
+        <constant>0.1</constant>
+        <linear>0.02</linear>
+        <quadratic>0.005</quadratic>
+      </attenuation>
+      <direction>1 0 0</direction>
+      <spot>
+        <inner_angle>0.9</inner_angle>
+        <outer_angle>1.65</outer_angle>
+        <falloff>1.0</falloff>
+      </spot>
+    </light>
   </gazebo>
 
   <!-- IMU sensor on imu_link -->

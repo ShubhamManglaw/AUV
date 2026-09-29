@@ -29,10 +29,26 @@ def generate_launch_description() -> LaunchDescription:
     pkg_description = get_package_share_directory("ps11_description")
     pkg_ros_gz_sim = get_package_share_directory("ros_gz_sim")
 
-    # Ensure Gazebo finds meshes from package share directories
+    # Ensure Gazebo finds meshes and models from package share directories
     gz_resource_path = AppendEnvironmentVariable(
         name="GZ_SIM_RESOURCE_PATH",
         value=os.path.dirname(pkg_description),
+    )
+    gz_models_path = AppendEnvironmentVariable(
+        name="GZ_SIM_RESOURCE_PATH",
+        value=os.path.join(pkg_gazebo, "models"),
+    )
+    src_models_dir = os.path.normpath(
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(pkg_gazebo))),
+            "src",
+            "ps11_gazebo",
+            "models",
+        )
+    )
+    gz_src_models_path = AppendEnvironmentVariable(
+        name="GZ_SIM_RESOURCE_PATH",
+        value=src_models_dir,
     )
     qt_plugin_path = SetEnvironmentVariable(
         name="QT_QPA_PLATFORM_PLUGIN_PATH",
@@ -186,6 +202,8 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             gz_resource_path,
+            gz_models_path,
+            gz_src_models_path,
             qt_plugin_path,
             mode_arg,
             gui_arg,

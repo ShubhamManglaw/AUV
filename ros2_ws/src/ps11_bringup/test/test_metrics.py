@@ -158,3 +158,71 @@ def test_evaluation_counters_calculation():
     assert counters.mean_position_error_m == pytest.approx(1.5)
     # Latencies: 6-2 = 4s and 11-5 = 6s -> mean 5.0 s
     assert counters.mean_first_report_latency_s == pytest.approx(5.0)
+    assert counters.correct_contacts_at_surface == 2
+    assert counters.false_contacts_at_surface == 0
+
+
+def test_false_contacts_at_surface():
+    """Unmatched surface contacts are accurately counted as false contacts."""
+    gt_objects = [
+        GroundTruthObject(id=1, name="debris_1", class_id=0, x=0.0, y=0.0, z=-15.0),
+    ]
+
+    # Contact 1: matched (within 1m)
+    # Contact 2: false contact (same class but 20m away)
+    # Contact 3: false contact (wrong class, no GT match)
+    surface_contacts = [
+        ContactObservation(
+            contact_id=1,
+            class_id=0,
+            x=0.5,
+            y=0.0,
+            z=-15.0,
+            confidence=0.8,
+            first_seen_s=2.0,
+            last_seen_s=6.0,
+            surface_arrival_s=6.5,
+        ),
+        ContactObservation(
+            contact_id=2,
+            class_id=0,
+            x=20.0,
+            y=20.0,
+            z=-15.0,
+            confidence=0.6,
+            first_seen_s=10.0,
+            last_seen_s=12.0,
+            surface_arrival_s=13.0,
+        ),
+        ContactObservation(
+            contact_id=3,
+            class_id=2,
+            x=0.0,
+            y=0.0,
+            z=-15.0,
+            confidence=0.5,
+            first_seen_s=15.0,
+            last_seen_s=16.0,
+            surface_arrival_s=17.0,
+        ),
+    ]
+
+    counters = calculate_counters(
+        semantic_bits_sent=640,
+        jpeg_equiv_bits=100000,
+        link_bitrate_bps=64,
+        contacts_onboard_count=3,
+        surface_contacts=surface_contacts,
+        gt_objects=gt_objects,
+        first_view_times={1: 1.0},
+        max_distance_m=3.0,
+    )
+
+    assert counters.contacts_at_surface == 3
+    assert counters.correct_contacts_at_surface == 1
+    assert counters.false_contacts_at_surface == 2
+    # Latency: arrival 6.5 - first_seen 2.0 = 4.5s
+    assert counters.mean_first_report_latency_s == pytest.approx(4.5)
+    # Old latency: arrival 6.5 - first_view 1.0 = 5.5s
+    assert counters.mean_time_since_mission_start_s == pytest.approx(5.5)
+

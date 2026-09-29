@@ -71,6 +71,7 @@ class MetricsNode(Node):
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
         # Load ground truth objects
+        self.scenario = scenario
         self.gt_objects: list[GroundTruthObject] = []
         self._load_ground_truth(scenario)
 
@@ -81,6 +82,7 @@ class MetricsNode(Node):
         self.contacts_onboard_count = 0
         self.surface_contacts: list[ContactObservation] = []
         self.first_view_times: dict[int, float] = {}
+        self.contact_first_surface_arrival: dict[int, float] = {}
 
         # QoS profiles
         sensor_qos = QoSProfile(
@@ -185,10 +187,16 @@ class MetricsNode(Node):
         self.contacts_onboard_count = len(msg.contacts)
 
     def _on_surface_contacts(self, msg: ContactArray) -> None:
+        now_s = self.get_clock().now().nanoseconds * 1e-9
+        for c in msg.contacts:
+            if c.contact_id not in self.contact_first_surface_arrival:
+                self.contact_first_surface_arrival[c.contact_id] = now_s
+
         obs_list: list[ContactObservation] = []
         for c in msg.contacts:
             first_s = c.first_seen.sec + c.first_seen.nanosec * 1e-9
             last_s = c.last_seen.sec + c.last_seen.nanosec * 1e-9
+            arr_s = self.contact_first_surface_arrival.get(c.contact_id, now_s)
             obs_list.append(
                 ContactObservation(
                     contact_id=c.contact_id,
@@ -199,6 +207,7 @@ class MetricsNode(Node):
                     confidence=c.confidence,
                     first_seen_s=first_s,
                     last_seen_s=last_s,
+                    surface_arrival_s=arr_s,
                 )
             )
         self.surface_contacts = obs_list
@@ -247,6 +256,8 @@ class MetricsNode(Node):
         """Write summary.json to output directory at shutdown."""
         summary = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "scenario": self.scenario,
+            "scenario_note": "demo scenario, the scenario the system was tuned on",
             "semantic_bits_sent": self.latest_counters.semantic_bits_sent,
             "jpeg_equiv_bits": self.latest_counters.jpeg_equiv_bits,
             "ratio_vs_jpeg": round(self.latest_counters.ratio_vs_jpeg, 2),
@@ -255,6 +266,8 @@ class MetricsNode(Node):
             ),
             "contacts_onboard": self.latest_counters.contacts_onboard,
             "contacts_at_surface": self.latest_counters.contacts_at_surface,
+            "correct_contacts_at_surface": self.latest_counters.correct_contacts_at_surface,
+            "false_contacts_at_surface": self.latest_counters.false_contacts_at_surface,
             "gt_objects_total": self.latest_counters.gt_objects_total,
             "gt_objects_reported": self.latest_counters.gt_objects_reported,
             "surface_recall": round(self.latest_counters.surface_recall, 4),
@@ -264,6 +277,11 @@ class MetricsNode(Node):
             "mean_first_report_latency_s": round(
                 self.latest_counters.mean_first_report_latency_s, 2
             ),
+            "mean_first_report_latency_note": "onboard-to-operator delay (surface arrival time minus contact first_seen onboard)",
+            "mean_time_since_mission_start_s": round(
+                self.latest_counters.mean_time_since_mission_start_s, 2
+            ),
+            "mean_time_since_mission_start_note": "time since mission start when contact arrived at surface",
             "link_profile": self.link_profile,
             "link_bitrate_bps": self.link_bitrate_bps,
             "image_frames_counted": self.image_frames_counted,

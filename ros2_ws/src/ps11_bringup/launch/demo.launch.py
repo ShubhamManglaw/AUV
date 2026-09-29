@@ -143,12 +143,24 @@ def generate_launch_description() -> LaunchDescription:
         output="screen",
     )
 
-    # 7. Optional MCAP bag recording
+    # 7. Optional MCAP bag recording (< 500 MB per mission)
+    # Records small telemetry/odom topics + JPEG compressed images; excludes uncompressed raw/depth images
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     bag_out_dir = os.path.abspath(os.path.join("results", f"run_{timestamp_str}_bag"))
     bag_record_proc = ExecuteProcess(
         condition=IfCondition(record),
-        cmd=["ros2", "bag", "record", "-s", "mcap", "-a", "-o", bag_out_dir],
+        cmd=[
+            "ros2",
+            "bag",
+            "record",
+            "-s",
+            "mcap",
+            "-a",
+            "--exclude-regex",
+            r"^(/vehicle/camera/image_raw$|/vehicle/camera/depth.*|/vehicle/perception/image_annotated$|/vehicle/camera/image/.*)",
+            "-o",
+            bag_out_dir,
+        ],
         output="screen",
     )
 

@@ -79,3 +79,43 @@ def test_mismatched_dtype_or_shape() -> None:
     arr_uint8 = np.zeros((10, 10), dtype=np.uint8)
     with pytest.raises(ValueError, match="must be float32"):
         numpy_to_image(arr_uint8, encoding="32FC1")
+
+
+def test_roundtrip_compressed_image_rgb() -> None:
+    from ps11_common.image_utils import (
+        compressed_image_to_numpy,
+        numpy_to_compressed_image,
+    )
+
+    h, w = 240, 320
+    # Generate smooth gradient image so JPEG compression doesn't destroy it
+    x = np.linspace(0, 255, w, dtype=np.uint8)
+    y = np.linspace(0, 255, h, dtype=np.uint8)
+    xx, yy = np.meshgrid(x, y)
+    original = np.stack([xx, yy, (xx // 2 + yy // 2)], axis=-1)
+
+    comp_msg = numpy_to_compressed_image(original, quality=95, encoding="rgb8")
+    assert comp_msg.format == "jpeg"
+    assert len(comp_msg.data) > 0
+
+    recovered = compressed_image_to_numpy(comp_msg, target_encoding="rgb8")
+    assert recovered.shape == original.shape
+    # Lossy JPEG will have small differences, verify mean error is small (< 5 px)
+    mean_err = np.mean(np.abs(original.astype(float) - recovered.astype(float)))
+    assert mean_err < 5.0
+
+
+def test_roundtrip_compressed_image_bgr() -> None:
+    from ps11_common.image_utils import (
+        compressed_image_to_numpy,
+        numpy_to_compressed_image,
+    )
+
+    h, w = 100, 100
+    original = np.full((h, w, 3), 128, dtype=np.uint8)
+
+    comp_msg = numpy_to_compressed_image(original, quality=80, encoding="bgr8")
+    recovered = compressed_image_to_numpy(comp_msg, target_encoding="bgr8")
+    assert recovered.shape == original.shape
+    np.testing.assert_allclose(recovered, original, atol=2.0)
+
