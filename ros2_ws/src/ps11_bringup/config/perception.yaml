@@ -9,13 +9,18 @@ underwater_effect:
 
 detector:
   model_path: "ml/weights/best.pt"
-  imgsz: 640
+  imgsz: 1280  # raised from 640 for M1 sim: T1.4 decals occupy few px at 2.5 m altitude; at 640 the model produced 0 raw predictions even at conf 0.05 (diagnosed 2026-09-29), at 1280 debris scores ~0.44. Jetson export stays 640 ONNX (T2.3).
   conf_threshold: 0.35
   iou_threshold: 0.5
-  device: "cuda:0"
-  max_rate_hz: 5.0  # ASSUMPTION: detector rate capped to Jetson-measured rate (or 5 Hz pending benchmark)
+  device: "auto"  # resolved at startup: cuda:0 if available else cpu; actual device logged once
+  max_rate_hz: 5.0  # ASSUMPTION: detector rate capped to Jetson-measured rate — NOT JETSON-MEASURED YET, 5 Hz pending benchmark
   camera_rate_hz: 5.0  # Measured reliable sensor rate (>= 5 Hz in rclpy SensorDataQoS, 10 Hz nominal)
   annotate_rate_hz: 5.0
+  # underwater_effect (T2.4) is an optional M1 task that is not built; when it
+  # ships, point this at /vehicle/camera/image_uw.
+  input_topic: "/vehicle/camera/image_raw"
+  nav_mode: "kinematic sim (M1)"  # used by the H3 simulation banner
+  jetson_measured: false  # H6: flip only after jetson/results/ contains a real benchmark
 
 tracker:
   # ByteTrack parameters
