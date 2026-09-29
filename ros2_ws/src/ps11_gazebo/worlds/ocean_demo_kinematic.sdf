@@ -44,33 +44,15 @@
       <direction>-0.1 0.1 -0.98</direction>
     </light>
 
-    <!-- Placeholder seabed plane at z = -15 m (T1.4 replaces with procedural tiles) -->
-    <model name="seabed_placeholder">
-      <static>true</static>
-      <pose>0 0 -15.0 0 0 0</pose>
-      <link name="seabed_link">
-        <collision name="seabed_collision">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-        </collision>
-        <visual name="seabed_visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <ambient>0.76 0.70 0.50 1.0</ambient>
-            <diffuse>0.76 0.70 0.50 1.0</diffuse>
-            <specular>0.05 0.05 0.05 1.0</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
+    <!-- Seabed: generated decal tiles at z = -15 m (T1.4, deterministic via tools/make_seabed.py).
+         Models are generated artifacts (gitignored); regenerate before running the sim. -->
+    <!-- SEABED_TILES_START -->
+    <include><name>seabed_tile_0_0</name><uri>model://seabed_tile_0_0</uri><pose>-20.0 -10.0 -15.0 0 0 0</pose></include>
+    <include><name>seabed_tile_1_0</name><uri>model://seabed_tile_1_0</uri><pose>0.0 -10.0 -15.0 0 0 0</pose></include>
+    <include><name>seabed_tile_2_0</name><uri>model://seabed_tile_2_0</uri><pose>20.0 -10.0 -15.0 0 0 0</pose></include>
+    <include><name>seabed_tile_0_1</name><uri>model://seabed_tile_0_1</uri><pose>-20.0 10.0 -15.0 0 0 0</pose></include>
+    <include><name>seabed_tile_1_1</name><uri>model://seabed_tile_1_1</uri><pose>0.0 10.0 -15.0 0 0 0</pose></include>
+    <include><name>seabed_tile_2_1</name><uri>model://seabed_tile_2_1</uri><pose>20.0 10.0 -15.0 0 0 0</pose></include>
+    <!-- SEABED_TILES_END -->
   </world>
 </sdf>
