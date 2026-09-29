@@ -11,6 +11,7 @@ An AUV edge-intelligence pipeline that turns camera frames into compact, priorit
 - Environment setup: plan §5
 - Running the demo: plan §17
 
+
 ## Build
 Always source `tools/env.sh` and build with the virtual environment's Python from `ros2_ws/`:
 ```bash
