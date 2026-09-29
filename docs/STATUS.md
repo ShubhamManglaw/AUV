@@ -27,7 +27,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T2.9 | Contingency: fine-tune on sim frames | Dev | 2–3 | optional | T1.4, T2.5 | Only if sim detections are poor (decide end of Day 2) |
 | T3.1 | Codec | Dev | 1 | done | T0.3 | 8-byte messages, golden vectors approved |
 | T3.2 | Link emulator | Dev | 1 | done | T3.1 | 64 bps, latency, loss, pull/queue modes, tests passed |
-| T3.3 | Scheduler | Dev | 3 | todo | T3.2, T2.8 | `semantic` required; `fifo_observations` optional |
+| T3.3 | Scheduler | Dev | 3 | done | T3.2, T2.8 | `semantic` done (k-slot §11.7, priorities from classes.yaml, weights from scheduler.yaml); `fifo_observations` NOT done (optional per §15.1). Phase 1: 34/34 pytest, ruff clean. Vertical slice (scheduler→link_emulator→surface_decoder, no Gazebo, wall time, isolated ROS_DOMAIN_ID): synthetic debris contact id=7 → one 8-byte CONTACT on /link/tx → /link/rx after 1.520 s (1.0 s airtime + 0.5 s latency) → /surface/contacts matches within quantisation (x/y/depth ±0.2 m, conf 0.8→6/7); repeat publishes suppressed; 64 bits/frame confirmed on /link/stats. Fake contacts published by a temp script (~/t33_smoke.py), not in repo |
 | T3.4 | Surface decoder | Dev | 3 | done | T3.1 | /link/rx only (H1), /surface/contacts, /surface/vehicle_track, /surface/markers published |
 | T4.1 | Bringup | Dev | 4 | todo | T1.5, T2.8, T3.3, T3.4 | Top-level launch files |
 | T4.2 | Metrics node | Dev | 4 | todo | T3.4 | Counters, summary.json; recall over all objects ("GT in view" cut) |
@@ -58,3 +58,12 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T7.5 | Hydrodynamic parameter tuning | Dev + Team | — | todo | M2 | Coefficients from CAD geometry and literature |
 | T7.6 | Detector licence migration study | Dev | — | todo | M2 | Apache-2.0/MIT alternative |
 | T7.7 | Multi-scenario evaluation report | Dev | — | todo | M2, M3 | Seeds, densities, link profiles |
+
+## Handoff checkpoint (after T3.3, 2026-09-29)
+
+- **Current branch:** `alt/t1.3-nav-sensor-models` · latest commits: `T3.3: semantic scheduler`, `cff1869 T2.5: detector node`, `33b93c2 T1.4`, `e8b3f43 T1.5`, `2960d38 T1.3`
+- **Completed:** T0.1–T0.3, T1.1–T1.3, T1.5, T2.1–T2.3, T2.5, T3.1, T3.2, T3.3, T3.4 (see table; T2.5 committed but row above still says todo)
+- **Next task:** T2.6 tracker (then T2.7 geolocator, T2.8 contact_db; scheduler input `/vehicle/contacts` already contract-frozen, tested with synthetic publishes)
+- **Known blockers:** none in this repo. ⚠ A live demo stack from the OTHER checkout `~/ps11-auv` (`ros2 launch ps11_bringup demo.launch.py`, started 09:57) runs on `ROS_DOMAIN_ID=42`; the T3.3 session killed its scheduler/link_emulator/surface_decoder PIDs (mistaken for orphans polluting smoke tests). Restart that demo there if still needed. For isolated node tests, use a different `ROS_DOMAIN_ID` (e.g. 43).
+- **Do-not-change contracts:** `ps11_telemetry/codec.py` packet format, `test/golden_vectors.json`, `/link/tx` + `/link/rx` = `ps11_interfaces/LinkFrame`, `/surface/contacts` = `ContactArray`, class IDs in `classes.yaml`, `link_profiles.yaml`, plan §14 topic/type table, §11 bit layouts.
+- **Workspace overlay:** `source tools/env.sh && source ros2_ws/install/setup.bash`; build with `cd ros2_ws && python -m colcon build --symlink-install --packages-up-to <pkg>`.
