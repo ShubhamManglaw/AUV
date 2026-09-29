@@ -22,6 +22,7 @@ setup(
             "odom_noise = ps11_nav.odom_noise_node:main",
             "depth_sim = ps11_nav.depth_sim_node:main",
             "range_adapter = ps11_nav.range_adapter_node:main",
+            "waypoint_follower = ps11_nav.waypoint_follower_node:main",
         ],
     },
 )

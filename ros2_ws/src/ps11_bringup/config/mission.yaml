@@ -7,3 +7,25 @@ lawnmower:
   survey_speed_mps: 1.0
   waypoint_tolerance_m: 2.0
   turn_speed_mps: 0.5
+  # Demo survey area (matches seabed.yaml demo: 50 x 30 m), centred on the
+  # launch point. Map frame, ENU.
+  area_length_m: 50.0
+  area_width_m: 30.0
+  area_center_x_m: 0.0
+  area_center_y_m: 0.0
+  return_to_center: true
+  # Plan §9.1 defines 2 m as the distance at which the vehicle slows down on
+  # approach; waypoint acceptance is the separate waypoint_tolerance_m above
+  # (Amendment 4: the two are distinct parameters, both 2.0 by configuration).
+  slowdown_radius_m: 2.0
+
+control:
+  control_rate_hz: 20.0
+  state_rate_hz: 1.0
+  k_yaw: 1.5
+  max_yaw_rate_rad_s: 1.0
+  yaw_gate_rad: 0.5
+  k_depth: 0.5
+  max_vz_mps: 0.2
+  progress_timeout_s: 20.0
+  progress_min_m: 0.05

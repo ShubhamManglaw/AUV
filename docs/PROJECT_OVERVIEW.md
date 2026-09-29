@@ -1,6 +1,6 @@
 # PS11-AUV — Project Overview (living file)
 
-**Last updated:** 2026-09-29, T1.3 done and accepted (Phase 1 + runtime Phase 2). Refresh this file at the end of each task.
+**Last updated:** 2026-09-29, T1.5 done and accepted (controller-isolation evidence). Refresh this file at the end of each task.
 **Purpose:** one place for the human developer to see what this project is, where it stands, and what happens next. Every number is sourced or marked NOT MEASURED. Sources: [P] `docs/implementation_plan.md`, [S] `docs/STATUS.md`, [R] `Reference_report.md`, [E] `ml/results/eval.md`, [N] `docs/next implementation plan.md`.
 
 ---
@@ -49,8 +49,8 @@ ps11-auv/
     ├── ps11_common/           # classes.py, image_utils.py, params.py (no cv_bridge!)
     ├── ps11_description/      # URDF/xacro + meshes (T1.1)
     ├── ps11_gazebo/           # ocean_demo_kinematic.sdf, sim.launch.py, bridge.yaml (T1.2)
-    ├── ps11_nav/              # error_model.py (ROS-free), odom_noise, depth_sim, range_adapter
-    │                          #   + tests (T1.3 done); waypoint_follower (T1.5) goes here
+    ├── ps11_nav/              # error_model.py, mission_logic.py (ROS-free), odom_noise, depth_sim,
+    │                          #   range_adapter (T1.3), waypoint_follower (T1.5) + tests
     ├── ps11_perception/       # EMPTY ← T2.5–T2.8 go here
     ├── ps11_telemetry/        # codec.py, link_model.py, link_emulator_node.py,
     │                          #   surface_decoder_node.py, surface_state.py + tests (T3.1/3.2/3.4 done)
@@ -63,9 +63,9 @@ ps11-auv/
 
 ## 4. Status snapshot (from docs/STATUS.md, 2026-09-28)
 
-**DONE (13):** T0.1 scaffold · T0.2 environment · T0.3 interfaces+common · T1.0 CAD export · T1.1 URDF conversion · T1.2 kinematic world/sensors/bridge · **T1.3 nav sensor models** · T2.1 datasets prep (script) · T2.2 training (129 epochs, best.pt epoch 109) · T2.3 eval+ONNX · T3.1 codec (FROZEN, golden vectors approved) · T3.2 link emulator · T3.4 surface decoder.
+**DONE (14):** T0.1 scaffold · T0.2 environment · T0.3 interfaces+common · T1.0 CAD export · T1.1 URDF conversion · T1.2 kinematic world/sensors/bridge · **T1.3 nav sensor models** · **T1.5 waypoint follower** · T2.1 datasets prep (script) · T2.2 training (129 epochs, best.pt epoch 109) · T2.3 eval+ONNX · T3.1 codec (FROZEN, golden vectors approved) · T3.2 link emulator · T3.4 surface decoder.
 
-**REMAINING (M1), in the order we work them:** T1.5 waypoint follower → T1.4 seabed decals (demo only) → T2.5 detector → **T3.3 scheduler + fake contacts (vertical slice)** → T2.6 tracker → T2.7 geolocator → T2.8 contact_db → T4.1 bringup + honesty checker → T4.2 metrics → T4.3 Foxglove → T4.4 integration → T4.6 recording → T4.5 charts. Teammates own T4.7 deck, T5.x Jetson — do not touch.
+**REMAINING (M1), in the order we work them:** **T1.4 seabed decals (demo only) — BLOCKED until datasets restored (see §8.1)** → T2.5 detector → **T3.3 scheduler + fake contacts (vertical slice)** → T2.6 tracker → T2.7 geolocator → T2.8 contact_db → T4.1 bringup + honesty checker → T4.2 metrics → T4.3 Foxglove → T4.4 integration → T4.6 recording → T4.5 charts. Teammates own T4.7 deck, T5.x Jetson — do not touch.
 
 **Never cut:** codec+tests, link emulator, semantic scheduler, H1 separation, live counters, H3 banner, recorded bag. **Cut first if behind:** charts (T4.5), error-ellipse markers, 3D props, vehicle 3D panel, Jetson video.
 
@@ -99,9 +99,13 @@ ps11-auv/
 | T1.3 controlled navigation run | actual GT arc 96.492 m; final horizontal nav error 0.4337 m (dx −0.0480, dy −0.4310) | [P2] |
 | T1.3 covariance verification | covariance[0]=[7]=0.24276765 vs expected 0.24276765; covariance[35]=0.00100000 | [P2] |
 | T1.3 TF heading bias observed | 0.500° | [P2] |
+| **T1.5 controller validation (TEST-ONLY perfect-nav baseline)** | intended-leg GT cross-track: 18,404 samples, mean 0.4522 · p95 0.8981 · **max 0.9929 m · 0 samples > 1.5 m → PASS** | nav error disabled only at the odom_noise param boundary; controller/nav.yaml unchanged [P2] |
+| **T1.5 normal-navigation end-to-end** (T1.3 drift enabled, representative M1 result) | NAV intended-leg max 1.6724 m (0.91 % >1.5 m); **GT intended-leg max 5.3310 m, 62.52 % >1.5 m** (measured navigation-drift effect, not controller failure); NAV-vs-GT 0.44→≈2.44 m | [P2] |
+| **T1.5 mission completion** | 17/17 waypoints, IDLE→TRANSIT→SURVEY→RETURN→IDLE, 0 FAULT/stuck/timeout, commands bounded, zero Twist + GT stationary after IDLE | both configurations [P2] |
+| **T1.5 mission duration (measured)** | 466.04 s / 465.86 s (normal) · 467.44 s (perfect-nav baseline) ≈ **7.8 min**; original "≈4 min" kept as historical estimate only | [P2] |
 | Jetson throughput/power, end-to-end recall/latency/position error, H.264 ratio | **NOT MEASURED YET** | T5.2, T4.2, T4.4, T4.5 |
 
-[P1] = Phase 1 unit validation (human-run terminal output) · [P2] = Phase 2 runtime integration (guarded simulation runs; see run logs referenced in the task session)
+[P1] = Phase 1 unit validation (human-run terminal output) · [P2] = Phase 2 runtime integration (guarded simulation runs; see run logs referenced in the task session). T1.5 detail: `results/t1.5/t1.5_evidence.md`. Raw normal-run sample files were lost in a machine reboot (`/tmp` cleared); accepted numbers survive in the task/session record — nothing reconstructed; perfect-nav raw samples kept outside the repo (`~/t15_perfectnav_samples.csv`).
 
 ## 8. Open issues / conflicts found in the PART-0 audit
 
@@ -114,6 +118,6 @@ ps11-auv/
 
 ## 9. Current focus
 
-**Just completed: T1.3 — Navigation sensor models** (plan §9.2, card §15.2). Phase 1 accepted (10/10 unit tests, ruff clean); Phase 2 runtime accepted (96.492 m controlled navigation run, error 0.4337 m, covariance verified, spawn altitude 2.5002 m). One runtime defect fixed: `nav.yaml` missing `ros__parameters:` nesting (structure-only). Measured values recorded in §7; CHANGELOG has the T1.3 entry. Standing rules unchanged: task order keeps T3.3 (+ fake contacts) right after T2.5; T1.4 stays blocked until the human restores `ml/data` and confirms `test_manifest.txt` matches the detector's original evaluation split; README.md, Reference_report.md and docs/next implementation plan.md are the human's — never touch without asking; no invented measurements; shared contracts frozen.
+**Just completed: T1.5 — Waypoint follower** (plan §9.1, card §15.2). Controller validated strictly (max intended-leg cross-track 0.9929 m, 0 samples > 1.5 m) under the labelled TEST-ONLY PERFECT-NAV CONTROLLER BASELINE; normal T1.3 navigation end-to-end results reported separately as a measured navigation-drift effect (GT intended-leg max 5.3310 m, 62.52 % > 1.5 m — mission still completes without fault); measured duration ≈ 7.8 min. Acceptance interpretation revised by explicit human approval — original criterion preserved in history (plan §15.2, CHANGELOG, `results/t1.5/t1.5_evidence.md`).
 
-**Next task: T1.5 — Waypoint follower** (plan §9.1, card §15.2). Implementation proposal presented 2026-09-29 — **waiting for the human's approval before writing any code**. Mission duration is NOT assumed: the plan's "about 4 min" conflicts with arithmetic (~6.5–7.5 min for 50×30 m at 4 m spacing, 1 m/s — see §8 item 3); the real duration will be measured from the simulation.
+**Next task: T1.4 — Seabed decal generator (demo scenario only). HARD BLOCKER (unchanged):** `ml/data/` does not exist on this machine — no raw datasets, no `test_manifest.txt`. Do NOT start T1.4 until the human restores the datasets and explicitly confirms that the restored `test_manifest.txt` corresponds to the detector's original evaluation split (H4). Do not download datasets or regenerate the manifest automatically. Standing rules unchanged: task order keeps T3.3 (+ fake contacts) right after T2.5; README.md, Reference_report.md and docs/next implementation plan.md are the human's — never touch without asking; no invented measurements; shared contracts frozen.

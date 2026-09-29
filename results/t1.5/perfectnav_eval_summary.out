@@ -1,0 +1,69 @@
+COLLECTOR: tracking 8 survey legs, 17 waypoints, tolerance 2.0 m; cmd_vel publishers at collector start = 0
+COLLECTOR: per-sample series written to /home/shubham/t15_perfectnav_samples.csv
+
+===== T1.5 PHASE 2 MEASURED SUMMARY =====
+cmd_vel publishers: start=0 at first motion=1
+--- baseline proof (TEST-ONLY perfect-nav isolation) ---
+max |NAV-GT| horizontal error, whole mission: 0.060000 m
+max |NAV-GT| horizontal error, pre-survey (IDLE+TRANSIT): 0.060000 m
+max |GT yaw - NAV yaw|: 0.060000 rad
+BASELINE FAIL (threshold 0.05 m)
+--- C. state sequence (sim_t, numeric, symbolic) ---
+     14.20  0  IDLE
+     15.20  1  TRANSIT
+     44.20  2  SURVEY
+    455.20  4  RETURN
+    482.20  0  IDLE
+FAULT occurred: False
+--- D. duration ---
+start sim t=14.76 end sim t=482.20 duration=467.44 s = 7.79 min
+--- E. actual movement ---
+GT arc 3D=456.347 m  horizontal=456.322 m
+--- F. command extrema ---
+max |linear.x|=1.0000  |linear.y|=0.000000000  |linear.z|=0.0376  |angular.z|=1.0000
+--- G. depth/altitude ---
+target depth (first sample)=12.504643440246582  initial=12.504643440246582  mean=12.5144  final=12.511125564575195  max |dev from target|=0.0796
+altitude initial=2.500153064727783  final=2.4845612049102783
+--- H. NAV drift (GT vs NAV horizontal error) ---
+fractions of planned 428 m survey: {0.25: 0.06, 0.5: 0.06, 0.75: 0.06}
+at survey end (SURVEY->RETURN): 0.00999983550547464
+final: 0.0000 m
+--- I. cross-track vs INTENDED ACTIVE LEG (human ruling) ---
+attribution: sample -> leg whose [arrival(start), arrival(end)] sim-time interval contains it (waypoint arrivals from NAV, tolerance 2.0 m)
+turn/end exclusion: along-leg < 2.0 m from either leg endpoint (same predeclared value as run 1; not changed after results)
+leg intervals (sim s): L0(wp0->wp1): 43.72..92.32, L2(wp2->wp3): 95.36..144.12, L4(wp4->wp5): 147.16..195.86, L6(wp6->wp7): 198.92..247.66, L8(wp8->wp9): 250.72..299.46, L10(wp10->wp11): 302.52..351.26, L12(wp12->wp13): 354.32..403.06, L14(wp14->wp15): 406.12..454.86
+  CONTROLLER-SPACE TRACKING (NAV vs intended leg):
+  NAV: samples=18410  mean=0.4522  median=0.4296  p95=0.8984  max=0.9929
+    samples > 1.5 m: 0  (0.00 %)
+    per-leg maxima: L0 (n=2303): 0.279 m, L2 (n=2303): 0.972 m, L4 (n=2300): 0.989 m, L6 (n=2300): 0.979 m, L8 (n=2300): 0.987 m, L10 (n=2302): 0.993 m, L12 (n=2300): 0.988 m, L14 (n=2302): 0.993 m
+  END-TO-END PHYSICAL TRACK ERROR (GT vs intended leg; controller + accumulated navigation error; NOT the controller gate):
+  GT: samples=18404  mean=0.4522  median=0.4295  p95=0.8981  max=0.9929
+    samples > 1.5 m: 0  (0.00 %)
+    per-leg maxima: L0 (n=2301): 0.279 m, L2 (n=2301): 0.972 m, L4 (n=2300): 0.989 m, L6 (n=2300): 0.979 m, L8 (n=2300): 0.990 m, L10 (n=2301): 0.993 m, L12 (n=2300): 0.991 m, L14 (n=2301): 0.993 m
+--- J. waypoints (NAV-based progression, tolerance 2.0 m) ---
+planned=17 reached=17
+  wp00 ( -25.0, -14.0) t=  43.72 NAV=(-23.232,-13.104) GT=(-23.268,-13.122) state=1
+  wp01 (  25.0, -14.0) t=  92.32 NAV=( 23.030,-14.012) GT=( 23.070,-14.012) state=2
+  wp02 (  25.0, -10.0) t=  95.36 NAV=( 24.424,-11.871) GT=( 24.431,-11.853) state=2
+  wp03 ( -25.0, -10.0) t= 144.12 NAV=(-23.038,-10.038) GT=(-23.078,-10.037) state=2
+  wp04 ( -25.0,  -6.0) t= 147.16 NAV=(-24.422, -7.887) GT=(-24.429, -7.868) state=2
+  wp05 (  25.0,  -6.0) t= 195.86 NAV=( 23.001, -6.040) GT=( 23.021, -6.039) state=2
+  wp06 (  25.0,  -2.0) t= 198.92 NAV=( 24.406, -3.889) GT=( 24.418, -3.851) state=2
+  wp07 ( -25.0,  -2.0) t= 247.66 NAV=(-23.060, -2.038) GT=(-23.080, -2.038) state=2
+  wp08 ( -25.0,   2.0) t= 250.72 NAV=(-24.428,  0.105) GT=(-24.440,  0.143) state=2
+  wp09 (  25.0,   2.0) t= 299.46 NAV=( 23.046,  1.961) GT=( 23.066,  1.962) state=2
+  wp10 (  25.0,   6.0) t= 302.52 NAV=( 24.419,  4.102) GT=( 24.432,  4.140) state=2
+  wp11 ( -25.0,   6.0) t= 351.26 NAV=(-23.052,  5.961) GT=(-23.072,  5.962) state=2
+  wp12 ( -25.0,  10.0) t= 354.32 NAV=(-24.423,  8.103) GT=(-24.436,  8.141) state=2
+  wp13 (  25.0,  10.0) t= 403.06 NAV=( 23.049,  9.961) GT=( 23.069,  9.962) state=2
+  wp14 (  25.0,  14.0) t= 406.12 NAV=( 24.421, 12.103) GT=( 24.434, 12.141) state=2
+  wp15 ( -25.0,  14.0) t= 454.86 NAV=(-23.051, 13.961) GT=(-23.071, 13.962) state=2
+  wp16 (   0.0,   0.0) t= 482.12 NAV=( -1.730,  0.945) GT=( -1.695,  0.926) state=4
+--- K. return / stop ---
+final GT=(-1.6951031610856124, 0.9261282347295613, -12.515591115044966)  final NAV=(-1.6951031610856124, 0.9261282347295613)
+GT distance from return target (0,0): 1.9316 m
+final state: 0 IDLE
+post-final-IDLE cmd_vel samples: 159 over 7.9 s sim; nonzero linear.x count=0
+GT movement before first commanded motion: 0.0000 m (stationarity guard)
+GT movement after final IDLE (latch safety, 8 s): 0.0000 m
+=========================================
