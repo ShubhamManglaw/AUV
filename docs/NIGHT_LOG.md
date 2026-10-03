@@ -8,11 +8,12 @@
   - **Q2 (T2.7 Geolocator Node):** DONE (Ray-to-seabed projection, sigma formula, unit tests + static TF test passed)
   - **Q3 (T2.8 Contact Database Node):** DONE (Inverse-variance fusion, spatial gating, 2 Hz publisher, unit tests passed)
   - **Q4 (T3.3 Telemetry Scheduler Node):** DONE (`semantic` policy, heartbeat <= 15s, debris first, 90s e2e verified without Gazebo)
-- **Tasks In Progress / Next:** Q5 (T4.2 Metrics Node)
+  - **Q5 (T4.2 Metrics Node):** DONE (Live counters, JPEG quality 75 live measurement, matching logic, summary.json writer)
+- **Tasks In Progress / Next:** Q6 (T4.1 Bringup Launch Files)
 - **Three Most Important Items for Human Review:**
-  1. **Semantic Telemetry Scheduling Verified (Q4 / T3.3):** 90-second headless run passed: debris contact arrived first at `/surface/contacts`, heartbeats received with maximum gap of 6.00s (contract $\le 15.0\,\text{s}$), 4,032 payload bits sent across 63 frames over 64 bps emulated link with 70.5% link utilization.
+  1. **Telemetry & Metrics Infrastructure Operational (Q4, Q5):** Both `scheduler` and `metrics` nodes are verified. `metrics` publishes 1 Hz `/eval/counters` and dumps `results/run_<timestamp>/summary.json` at shutdown with real JPEG quality 75 size and acoustic compression ratios.
   2. **Detector Retention & Deployment (Q0 / T2.9):** The fine-tuned weights `best_v2.pt` beat baseline on the 2,229-image real test set (mAP50 0.705 vs 0.703; debris mAP50 improved +0.035 from 0.351 to 0.386). Deployed to `ros2_ws/src/ps11_bringup/config/perception.yaml`.
-  3. **Full Pipeline Verified Up to Surface:** Onboard perception (`detector` $\rightarrow$ `tracker` $\rightarrow$ `geolocator` $\rightarrow$ `contact_db`) and telemetry (`scheduler` $\rightarrow$ `link_emulator` $\rightarrow$ `surface_decoder`) are complete, tested, and built.
+  3. **Full Pipeline Ready for Bringup:** All subcomponents (sim, nav, perception, telemetry, metrics) are verified; next is unifying bringup launch files (Q6).
 
 ---
 
@@ -223,6 +224,60 @@ Frames lost: 5
 Frames rejected: 0
 Queue length: 0
 Utilisation: 0.705
+```
+
+---
+
+## Q5 — T4.2 Metrics Node (Live Evaluation Counters & Summary)
+- **Status:** DONE
+- **Deliverables:**
+  - `ros2_ws/src/ps11_bringup/ps11_bringup/metrics.py` (pure logic: ground truth matching within 3.0 m, class matching, error/latency/recall/ratio calculation)
+  - `ros2_ws/src/ps11_bringup/test/test_metrics.py` (unit tests covering: matching within 3m, rejection of wrong class or >3m, counters math)
+  - `ros2_ws/src/ps11_bringup/ps11_bringup/metrics_node.py` (ROS 2 node subscribing to `/vehicle/camera/image_raw` for live JPEG q=75 bytes, `/link/stats`, `/vehicle/contacts`, `/surface/contacts`, `/sim/gt/odom`; publishing `/eval/counters` at 1 Hz; writing `results/run_<timestamp>/summary.json` at shutdown)
+  - `ros2_ws/src/ps11_bringup/setup.py` (entry point `metrics`, launch and foxglove install dirs)
+- **Key Commands & Output (Verbatim):**
+```text
+$ python -m pytest ros2_ws/src/ps11_bringup/test/test_metrics.py -v
+============================= test session starts ==============================
+collected 3 items
+
+ros2_ws/src/ps11_bringup/test/test_metrics.py::test_matching_same_class_within_3m PASSED [ 33%]
+ros2_ws/src/ps11_bringup/test/test_metrics.py::test_matching_rejects_different_class_and_out_of_range PASSED [ 66%]
+ros2_ws/src/ps11_bringup/test/test_metrics.py::test_evaluation_counters_calculation PASSED [100%]
+
+============================== 3 passed in 0.02s ===============================
+```
+```text
+$ cd ros2_ws && python -m colcon build --symlink-install --packages-select ps11_bringup
+Starting >>> ps11_bringup
+Finished <<< ps11_bringup [1.10s]
+
+Summary: 1 package finished [1.21s]
+```
+```text
+$ timeout 5 ros2 run ps11_bringup metrics --ros-args -p scenario:=demo -p link_profile:=m64
+[INFO] [metrics]: Metrics node initialized: scenario=demo (12 GT objects), link_profile=m64 (64 bps), output_dir=results/run_20260928_234657
+[metrics] Wrote summary to results/run_20260928_234657/summary.json
+```
+- **Output Artifact (`results/run_20260928_234657/summary.json`):**
+```json
+{
+  "timestamp": "2026-09-28T23:47:02.262064+00:00",
+  "semantic_bits_sent": 0,
+  "jpeg_equiv_bits": 0,
+  "ratio_vs_jpeg": 0.0,
+  "jpeg_airtime_at_link_s": 0.0,
+  "contacts_onboard": 0,
+  "contacts_at_surface": 0,
+  "gt_objects_total": 12,
+  "gt_objects_reported": 0,
+  "surface_recall": 0.0,
+  "mean_position_error_m": 0.0,
+  "mean_first_report_latency_s": 0.0,
+  "link_profile": "m64",
+  "link_bitrate_bps": 64,
+  "image_frames_counted": 0
+}
 ```
 
 ---

@@ -30,7 +30,7 @@ Scope changes for the one-developer schedule are described in plan §15.1 ("Redu
 | T3.3 | Scheduler | Dev | 3 | done | T3.2, T2.8 | `semantic` required; policy, scheduler node, fake_vehicle, 5/5 unit tests passed, 90s e2e verified |
 | T3.4 | Surface decoder | Dev | 3 | done | T3.1 | /link/rx only (H1), /surface/contacts, /surface/vehicle_track, /surface/markers published |
 | T4.1 | Bringup | Dev | 4 | todo | T1.5, T2.8, T3.3, T3.4 | Top-level launch files |
-| T4.2 | Metrics node | Dev | 4 | todo | T3.4 | Counters, summary.json; recall over all objects ("GT in view" cut) |
+| T4.2 | Metrics node | Dev | 4 | done | T3.4 | Counters, summary.json; recall over all objects ("GT in view" cut) |
 | T4.3 | Foxglove layout | Dev | 4 | todo | T4.1 | Operator layout, titles, banner |
 | T4.4 | Integration and tuning | Dev | 4 | todo | All above | Tune and report on demo scenario, labelled as the tuned scenario |
 | T4.5 | Experiments and charts | Dev | 4 | todo | T4.6 | H.264 comparison and charts from the recorded run; baseline run only if fifo policy exists; generic_1k deferred |
