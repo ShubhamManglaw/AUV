@@ -3,7 +3,7 @@
 set -e
 
 patterns=(
-  "gz sim -r"
+  "gz sim"
   "parameter_bridge"
   "image_bridge"
   "robot_state_publisher"
@@ -13,6 +13,16 @@ patterns=(
   "odom_noise"
   "depth_sim"
   "range_adapter"
+  "detector"
+  "tracker"
+  "geolocator"
+  "contact_db"
+  "scheduler"
+  "link_emulator"
+  "surface_decoder"
+  "metrics"
+  "foxglove_bridge"
+  "fake_vehicle"
 )
 
 get_pids() {
