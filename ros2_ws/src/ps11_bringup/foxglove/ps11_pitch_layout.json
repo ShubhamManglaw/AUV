@@ -1,0 +1,162 @@
+{
+  "configById": {
+    "ImageView!vehicle_camera": {
+      "cameraTopic": "/vehicle/perception/image_annotated",
+      "enabledMarkerTopics": [],
+      "transformMarkers": false,
+      "synchronize": false
+    },
+    "3D!vehicle_onboard_view": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 8.0,
+        "phi": 60.0,
+        "thetaOffset": 0.0,
+        "targetOffset": [0, 0, 0],
+        "target": [0, 0, -12.5],
+        "fovy": 45.0
+      },
+      "followMode": "follow-pose",
+      "followTf": "base_link",
+      "layers": {
+        "grid": {
+          "layerId": "grid",
+          "visible": true,
+          "size": 50,
+          "divisions": 50,
+          "position": [0, 0, -15.0]
+        }
+      },
+      "scene": {
+        "transforms": {
+          "showBounds": false
+        }
+      },
+      "transforms": {
+        "frame:map": { "visible": true },
+        "frame:base_link": { "visible": true }
+      },
+      "topics": {
+        "/vehicle/markers": { "visible": true },
+        "/eval/gt_markers": { "visible": false }
+      }
+    },
+    "3D!surface_topdown_view": {
+      "cameraState": {
+        "perspective": false,
+        "distance": 60.0,
+        "phi": 0.0,
+        "thetaOffset": 0.0,
+        "targetOffset": [0, 0, 0],
+        "target": [15, 0, -15],
+        "fovy": 45.0
+      },
+      "followMode": "fixed",
+      "layers": {
+        "grid": {
+          "layerId": "grid",
+          "visible": true,
+          "size": 100,
+          "divisions": 10,
+          "position": [0, 0, -15.0],
+          "color": "#404040"
+        }
+      },
+      "topics": {
+        "/surface/markers": { "visible": true },
+        "/surface/vehicle_track": { "visible": true }
+      }
+    },
+    "Table!surface_contacts": {
+      "topicPath": "/surface/contacts.contacts"
+    },
+    "Plot!bandwidth_counters": {
+      "title": "Bandwidth Comparison (Cumulative Bits)",
+      "paths": [
+        {
+          "value": "/eval/counters.jpeg_equiv_bits",
+          "enabled": true,
+          "label": "JPEG-equivalent (quality 75)",
+          "color": "#E4572E"
+        },
+        {
+          "value": "/eval/counters.semantic_bits_sent",
+          "enabled": true,
+          "label": "Semantic Telemetry (Acoustic)",
+          "color": "#4ECDC4"
+        }
+      ],
+      "showLegend": true
+    },
+    "Indicator!compression_ratio": {
+      "path": "/eval/counters.ratio_vs_jpeg",
+      "style": "normal",
+      "label": "Bandwidth Compression Ratio",
+      "precision": 1
+    },
+    "Indicator!video_airtime": {
+      "path": "/eval/counters.jpeg_airtime_at_link_s",
+      "style": "normal",
+      "label": "Video Airtime Needed (s) on 64 bps Link",
+      "precision": 0
+    },
+    "Indicator!surface_contacts_count": {
+      "path": "/eval/counters.contacts_at_surface",
+      "style": "normal",
+      "label": "Contacts at Surface",
+      "precision": 0
+    },
+    "RawMessages!link_stats": {
+      "topicPath": "/link/stats"
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "direction": "column",
+    "first": {
+      "direction": "row",
+      "first": {
+        "title": "VEHICLE — onboard (simulation)",
+        "direction": "column",
+        "first": "ImageView!vehicle_camera",
+        "second": "3D!vehicle_onboard_view",
+        "splitPercentage": 50
+      },
+      "second": {
+        "title": "SURFACE — received over emulated 64 bps acoustic link",
+        "direction": "column",
+        "first": "3D!surface_topdown_view",
+        "second": "Table!surface_contacts",
+        "splitPercentage": 60
+      },
+      "splitPercentage": 50
+    },
+    "second": {
+      "title": "Bandwidth & Telemetry Evaluation",
+      "direction": "row",
+      "first": "Plot!bandwidth_counters",
+      "second": {
+        "direction": "row",
+        "first": {
+          "direction": "column",
+          "first": "Indicator!compression_ratio",
+          "second": "Indicator!video_airtime",
+          "splitPercentage": 50
+        },
+        "second": {
+          "direction": "column",
+          "first": "Indicator!surface_contacts_count",
+          "second": "RawMessages!link_stats",
+          "splitPercentage": 50
+        },
+        "splitPercentage": 50
+      },
+      "splitPercentage": 50
+    },
+    "splitPercentage": 75
+  }
+}

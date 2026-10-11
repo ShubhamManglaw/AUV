@@ -20,3 +20,17 @@ python -m colcon build --symlink-install
 ```
 Always build with `python -m colcon build` (never bare `colcon build`) so node executables use the venv interpreter.
 
+## Operator Visualisation (Foxglove Studio)
+To visualise the live demo run or replay an MCAP bag:
+1. Open Foxglove Studio (desktop app or web app at [https://app.foxglove.dev](https://app.foxglove.dev)).
+2. Connect to the running ROS 2 bridge:
+   - Select **Open connection** &rarr; **Foxglove WebSocket**.
+   - URL: `ws://localhost:8765`
+3. Load the preconfigured pitch layout:
+   - Click the layout menu in the top bar &rarr; **Import from file...**
+   - Select `ros2_ws/src/ps11_bringup/foxglove/ps11_pitch_layout.json`.
+4. The dashboard displays:
+   - **Left (VEHICLE):** Onboard annotated camera stream (`/vehicle/perception/image_annotated`) and 3D vehicle model with detections.
+   - **Right (SURFACE):** Decoded contacts table (`/surface/contacts`), 3D map with acoustic contact markers (`/surface/markers`) and vehicle track (`/surface/vehicle_track`).
+   - **Bottom (BANDWIDTH):** Live cumulative bandwidth comparison (JPEG equivalent vs. semantic telemetry), live compression ratio, airtime estimate on 64 bps link, and acoustic link status.
+
