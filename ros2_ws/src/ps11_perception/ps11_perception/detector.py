@@ -88,9 +88,15 @@ class YOLODetector:
             self.colors_rgb[c.id] = hex_to_rgb(c.color)
 
     def detect(self, img_rgb: np.ndarray) -> list[Detection]:
-        """Run YOLO inference on an RGB image and return list of detections."""
+        """Run YOLO inference on an RGB image and return list of detections.
+
+        Ultralytics assumes NumPy array inputs are in BGR format (like cv2.imread).
+        It internally executes `im = im[..., ::-1]` to feed RGB tensors to the CNN.
+        Converting img_rgb to BGR ensures Ultralytics correctly produces true RGB tensors.
+        """
+        img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
         results = self.model(
-            img_rgb,
+            img_bgr,
             imgsz=self.imgsz,
             conf=self.conf_threshold,
             iou=self.iou_threshold,

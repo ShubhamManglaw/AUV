@@ -7,17 +7,24 @@ from ps11_common.classes import (
     get_class_by_name,
     get_class_db,
 )
-from ps11_common.image_utils import image_to_numpy, numpy_to_image
+from ps11_common.image_utils import (
+    compressed_image_to_numpy,
+    image_to_numpy,
+    numpy_to_compressed_image,
+    numpy_to_image,
+)
 from ps11_common.params import get_config_path, load_yaml
 
 __all__ = [
     "ClassDatabase",
     "ClassInfo",
+    "compressed_image_to_numpy",
     "get_class_by_id",
     "get_class_by_name",
     "get_class_db",
     "get_config_path",
     "image_to_numpy",
     "load_yaml",
+    "numpy_to_compressed_image",
     "numpy_to_image",
 ]

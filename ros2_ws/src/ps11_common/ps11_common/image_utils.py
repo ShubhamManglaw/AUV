@@ -1,7 +1,7 @@
 """Pure-NumPy image conversion utilities for ROS 2 without cv_bridge."""
 
 import numpy as np
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import Header
 
 SUPPORTED_ENCODINGS = ("rgb8", "bgr8", "32FC1")
@@ -111,3 +111,58 @@ def numpy_to_image(
     msg.step = int(step)
     msg.data = arr.tobytes()
     return msg
+
+
+def numpy_to_compressed_image(
+    arr: np.ndarray,
+    quality: int = 80,
+    header: Header | None = None,
+    encoding: str = "rgb8",
+) -> CompressedImage:
+    """Convert numpy array (RGB or BGR) to sensor_msgs/CompressedImage (JPEG)."""
+    import cv2
+
+    if encoding == "rgb8":
+        bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+    elif encoding == "bgr8":
+        bgr = arr
+    else:
+        raise ValueError(
+            f"Unsupported encoding '{encoding}' for JPEG compression. Use 'rgb8' or 'bgr8'."
+        )
+
+    success, enc = cv2.imencode(
+        ".jpg", bgr, [int(cv2.IMWRITE_JPEG_QUALITY), int(quality)]
+    )
+    if not success:
+        raise RuntimeError("cv2.imencode failed to compress image to JPEG")
+
+    msg = CompressedImage()
+    if header is not None:
+        msg.header = header
+    msg.format = "jpeg"
+    msg.data = enc.tobytes()
+    return msg
+
+
+def compressed_image_to_numpy(
+    msg: CompressedImage,
+    target_encoding: str = "rgb8",
+) -> np.ndarray:
+    """Decode a sensor_msgs/CompressedImage (JPEG) to a numpy ndarray."""
+    import cv2
+
+    np_arr = np.frombuffer(msg.data, np.uint8)
+    bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    if bgr is None:
+        raise RuntimeError("cv2.imdecode failed to decode CompressedImage data")
+
+    if target_encoding == "rgb8":
+        return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    elif target_encoding == "bgr8":
+        return bgr
+    else:
+        raise ValueError(
+            f"Unsupported target_encoding '{target_encoding}'. Use 'rgb8' or 'bgr8'."
+        )
+

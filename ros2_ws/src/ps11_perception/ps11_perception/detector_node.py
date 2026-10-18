@@ -6,11 +6,15 @@ from pathlib import Path
 
 import rclpy
 from ps11_common.classes import ClassDatabase
-from ps11_common.image_utils import image_to_numpy, numpy_to_image
+from ps11_common.image_utils import (
+    image_to_numpy,
+    numpy_to_compressed_image,
+    numpy_to_image,
+)
 from ps11_common.params import get_config_path, load_yaml
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, qos_profile_sensor_data
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage, Image
 from vision_msgs.msg import (
     BoundingBox2D,
     Detection2D,
@@ -112,6 +116,8 @@ class DetectorNode(Node):
         self._lock = threading.Lock()
         self._latest_msg: Image | None = None
         self._new_frame_available: bool = False
+        self._last_wall_time: float = 0.0
+        self._last_sim_time = self.get_clock().now()
 
         # Publishers
         qos_rel = QoSProfile(depth=10, reliability=ReliabilityPolicy.RELIABLE)
@@ -121,29 +127,64 @@ class DetectorNode(Node):
         self.annotated_pub = self.create_publisher(
             Image, "/vehicle/perception/image_annotated", qos_rel
         )
+        self.annotated_compressed_pub = self.create_publisher(
+            CompressedImage,
+            "/vehicle/perception/image_annotated/compressed",
+            qos_rel,
+        )
+        self.raw_compressed_pub = self.create_publisher(
+            CompressedImage,
+            "/vehicle/camera/image_raw/compressed",
+            qos_profile_sensor_data,
+        )
 
-        # Subscriptions: support both SensorDataQoS (BEST_EFFORT) and RELIABLE
+        # Subscriptions: SensorDataQoS (BEST_EFFORT) per plan §10.5
         self.create_subscription(
             Image, input_topic, self._on_image, qos_profile_sensor_data
         )
-        self.create_subscription(Image, input_topic, self._on_image, qos_rel)
 
-        # Rate-capping timer: ticks at max_rate_hz (default 5 Hz)
-        timer_period = 1.0 / self.max_rate_hz
-        self.timer = self.create_timer(timer_period, self._on_timer)
+        # Rate-capping timer: ticks frequently, worker enforces strict max_rate_hz cap
+        check_period = min(0.02, 1.0 / (2.0 * self.max_rate_hz))
+        self.timer = self.create_timer(check_period, self._on_timer)
 
         self.get_logger().info(
             f"DetectorNode ready. Subscribing to {input_topic}, publishing /vehicle/perception/detections"
         )
 
     def _on_image(self, msg: Image) -> None:
-        """Cache incoming image; always retain the newest frame."""
+        """Cache incoming image; always retain newest frame; publish quality-95 raw JPEG."""
         with self._lock:
             self._latest_msg = msg
             self._new_frame_available = True
 
+        try:
+            raw_rgb = image_to_numpy(msg)
+            compressed_raw = numpy_to_compressed_image(
+                raw_rgb,
+                quality=95,
+                header=msg.header,
+                encoding=msg.encoding or "rgb8",
+            )
+            self.raw_compressed_pub.publish(compressed_raw)
+        except Exception as e:  # noqa: BLE001
+            self.get_logger().warn(
+                f"Failed to compress raw image: {e}",
+                throttle_duration_sec=5.0,
+            )
+
     def _on_timer(self) -> None:
         """Periodic inference worker enforcing the rate cap."""
+        import time
+
+        now_wall = time.monotonic()
+        now_sim = self.get_clock().now()
+        dt_wall = now_wall - self._last_wall_time
+        dt_sim = (now_sim - self._last_sim_time).nanoseconds * 1e-9
+        min_period = 1.0 / self.max_rate_hz
+
+        if dt_wall < (min_period * 0.95) or dt_sim < (min_period * 0.95):
+            return
+
         msg: Image | None = None
         with self._lock:
             if not self._new_frame_available or self._latest_msg is None:
@@ -154,68 +195,83 @@ class DetectorNode(Node):
         if msg is None:
             return
 
+        self._last_wall_time = time.monotonic()
+        self._last_sim_time = self.get_clock().now()
+
         try:
             img_rgb = image_to_numpy(msg)
         except Exception as e:  # noqa: BLE001
             self.get_logger().error(f"Failed to convert Image message to numpy: {e}")
             return
 
-        # Run inference
-        detections: list[Detection] = self.detector.detect(img_rgb)
+        try:
+            # Run inference
+            detections: list[Detection] = self.detector.detect(img_rgb)
 
-        # Build Detection2DArray
-        det_array = Detection2DArray()
-        det_array.header.stamp = msg.header.stamp
-        det_array.header.frame_id = msg.header.frame_id or "camera_optical_frame"
+            # Build Detection2DArray
+            det_array = Detection2DArray()
+            det_array.header.stamp = msg.header.stamp
+            det_array.header.frame_id = msg.header.frame_id or "camera_optical_frame"
 
-        for det in detections:
-            d2d = Detection2D()
-            d2d.header = det_array.header
+            for det in detections:
+                d2d = Detection2D()
+                d2d.header = det_array.header
 
-            # Bounding box
-            bbox = BoundingBox2D()
-            if hasattr(bbox.center, "position"):
-                bbox.center.position.x = float(det.cx)
-                bbox.center.position.y = float(det.cy)
-            else:
-                bbox.center.x = float(det.cx)
-                bbox.center.y = float(det.cy)
-            bbox.size_x = float(det.w)
-            bbox.size_y = float(det.h)
-            d2d.bbox = bbox
+                # Bounding box
+                bbox = BoundingBox2D()
+                if hasattr(bbox.center, "position"):
+                    bbox.center.position.x = float(det.cx)
+                    bbox.center.position.y = float(det.cy)
+                else:
+                    bbox.center.x = float(det.cx)
+                    bbox.center.y = float(det.cy)
+                bbox.size_x = float(det.w)
+                bbox.size_y = float(det.h)
+                d2d.bbox = bbox
 
-            # Class hypothesis
-            hyp = ObjectHypothesis()
-            if hasattr(hyp, "class_id"):
-                hyp.class_id = str(det.class_id)
-            else:
-                hyp.id = str(det.class_id)
-            hyp.score = float(det.confidence)
+                # Class hypothesis
+                hyp = ObjectHypothesis()
+                if hasattr(hyp, "class_id"):
+                    hyp.class_id = str(det.class_id)
+                else:
+                    hyp.id = str(det.class_id)
+                hyp.score = float(det.confidence)
 
-            hyp_pose = ObjectHypothesisWithPose()
-            if hasattr(hyp_pose, "hypothesis"):
-                hyp_pose.hypothesis = hyp
-            else:
-                if hasattr(hyp_pose, "id"):
-                    hyp_pose.id = str(det.class_id)
-                hyp_pose.score = float(det.confidence)
+                hyp_pose = ObjectHypothesisWithPose()
+                if hasattr(hyp_pose, "hypothesis"):
+                    hyp_pose.hypothesis = hyp
+                else:
+                    if hasattr(hyp_pose, "id"):
+                        hyp_pose.id = str(det.class_id)
+                    hyp_pose.score = float(det.confidence)
 
-            d2d.results.append(hyp_pose)
-            det_array.detections.append(d2d)
+                d2d.results.append(hyp_pose)
+                det_array.detections.append(d2d)
 
-        # Publish detections
-        self.det_pub.publish(det_array)
+            # Publish detections
+            self.det_pub.publish(det_array)
 
-        # Annotate and publish image
-        annotated_rgb = self.detector.annotate(
-            img_rgb, detections, banner_text=self.banner_text
-        )
-        annotated_msg = numpy_to_image(
-            annotated_rgb,
-            encoding="rgb8",
-            header=det_array.header,
-        )
-        self.annotated_pub.publish(annotated_msg)
+            # Annotate and publish image
+            annotated_rgb = self.detector.annotate(
+                img_rgb, detections, banner_text=self.banner_text
+            )
+            annotated_msg = numpy_to_image(
+                annotated_rgb,
+                encoding="rgb8",
+                header=det_array.header,
+            )
+            self.annotated_pub.publish(annotated_msg)
+
+            # Publish JPEG quality 80 compressed annotated image
+            annotated_comp_msg = numpy_to_compressed_image(
+                annotated_rgb,
+                quality=80,
+                header=det_array.header,
+                encoding="rgb8",
+            )
+            self.annotated_compressed_pub.publish(annotated_comp_msg)
+        except Exception as e:  # noqa: BLE001
+            self.get_logger().error(f"Inference/annotation pipeline error: {e}")
 
 
 def main(args: list[str] | None = None) -> None:

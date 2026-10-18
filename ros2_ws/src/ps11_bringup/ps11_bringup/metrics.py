@@ -34,6 +34,7 @@ class ContactObservation:
     confidence: float
     first_seen_s: float
     last_seen_s: float
+    surface_arrival_s: float = 0.0
 
 
 @dataclass
@@ -43,7 +44,8 @@ class MatchResult:
     gt: GroundTruthObject
     contact: ContactObservation
     distance_m: float
-    latency_s: float
+    latency_s: float  # onboard-to-operator delay: surface_arrival_s - contact.first_seen_s
+    time_since_mission_start_s: float = 0.0
 
 
 @dataclass
@@ -56,11 +58,14 @@ class EvaluationCounters:
     jpeg_airtime_at_link_s: float = 0.0
     contacts_onboard: int = 0
     contacts_at_surface: int = 0
+    correct_contacts_at_surface: int = 0
+    false_contacts_at_surface: int = 0
     gt_objects_total: int = 0
     gt_objects_reported: int = 0
     surface_recall: float = 0.0
     mean_position_error_m: float = 0.0
-    mean_first_report_latency_s: float = 0.0
+    mean_first_report_latency_s: float = 0.0  # Onboard-to-operator delay
+    mean_time_since_mission_start_s: float = 0.0  # Time since mission start
 
 
 def match_contacts_to_gt(
@@ -105,16 +110,27 @@ def match_contacts_to_gt(
             gt_obj = gt_objects[g_idx]
             contact = surface_contacts[c_idx]
 
-            # Latency: time from first view (or contact first seen) to contact report arrival
-            t_first_view = first_view_times.get(gt_obj.id, contact.first_seen_s)
-            latency = max(0.0, contact.last_seen_s - t_first_view)
+            # Latency (a): onboard-to-operator delay = time contact first arrives at surface minus contact first_seen onboard
+            arrival_s = (
+                contact.surface_arrival_s
+                if contact.surface_arrival_s > 0
+                else contact.last_seen_s
+            )
+            onboard_to_surface_delay = max(0.0, arrival_s - contact.first_seen_s)
+
+            # Old metric: time since mission start
+            t_first_view = first_view_times.get(gt_obj.id, 0.0)
+            time_since_mission_start = (
+                max(0.0, arrival_s - t_first_view) if t_first_view > 0 else arrival_s
+            )
 
             matches.append(
                 MatchResult(
                     gt=gt_obj,
                     contact=contact,
                     distance_m=dist,
-                    latency_s=latency,
+                    latency_s=onboard_to_surface_delay,
+                    time_since_mission_start_s=time_since_mission_start,
                 )
             )
 
@@ -137,7 +153,7 @@ def calculate_counters(
     max_distance_m: float = 3.0,
 ) -> EvaluationCounters:
     """Compute live and final evaluation counters (§12.2)."""
-    matches, _, _ = match_contacts_to_gt(
+    matches, _, unmatched_contacts = match_contacts_to_gt(
         gt_objects,
         surface_contacts,
         max_distance_m=max_distance_m,
@@ -161,6 +177,11 @@ def calculate_counters(
 
     mean_pos_err = sum(m.distance_m for m in matches) / len(matches) if matches else 0.0
     mean_latency = sum(m.latency_s for m in matches) / len(matches) if matches else 0.0
+    mean_since_start = (
+        sum(m.time_since_mission_start_s for m in matches) / len(matches)
+        if matches
+        else 0.0
+    )
 
     return EvaluationCounters(
         semantic_bits_sent=semantic_bits_sent,
@@ -169,9 +190,12 @@ def calculate_counters(
         jpeg_airtime_at_link_s=airtime,
         contacts_onboard=contacts_onboard_count,
         contacts_at_surface=len(surface_contacts),
+        correct_contacts_at_surface=len(matches),
+        false_contacts_at_surface=len(unmatched_contacts),
         gt_objects_total=gt_total,
         gt_objects_reported=gt_reported,
         surface_recall=recall,
         mean_position_error_m=mean_pos_err,
         mean_first_report_latency_s=mean_latency,
+        mean_time_since_mission_start_s=mean_since_start,
     )
