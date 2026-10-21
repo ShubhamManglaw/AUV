@@ -12,11 +12,8 @@ Acceptance checks:
 
 from __future__ import annotations
 
-import json
-import os
 import signal
 import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -89,9 +86,9 @@ class DemoMissionMonitor(Node):
         self.latest_stats = msg
 
 
-def run_e2e_demo(timeout_s: float = 420.0) -> int:
+def run_e2e_demo(timeout_s: float = 420.0, run_name: str = "default") -> int:
     print("================================================================================")
-    print("PS11 AUV — Full-Chain End-to-End Demo Mission Run (Q7)")
+    print(f"PS11 AUV — Full-Chain End-to-End Demo Mission Run ({run_name})")
     print("================================================================================")
 
     # 1. Clean up simulation processes
@@ -100,10 +97,18 @@ def run_e2e_demo(timeout_s: float = 420.0) -> int:
     time.sleep(2.0)
 
     # 2. Launch demo.launch.py with record:=true
-    print(f"[2/5] Launching demo.launch.py (headless, gui:=false, record:=true, max_timeout={timeout_s}s)...")
+    print(
+        f"[2/5] Launching demo.launch.py (headless, gui:=false, record:=true, max_timeout={timeout_s}s)..."
+    )
     cmd = [
-        "ros2", "launch", "ps11_bringup", "demo.launch.py",
-        "gui:=false", "record:=true", "scenario:=demo", "link_profile:=m64"
+        "ros2",
+        "launch",
+        "ps11_bringup",
+        "demo.launch.py",
+        "gui:=false",
+        "record:=true",
+        "scenario:=demo",
+        "link_profile:=m64",
     ]
 
     launch_proc = subprocess.Popen(cmd)
@@ -117,12 +122,16 @@ def run_e2e_demo(timeout_s: float = 420.0) -> int:
         while time.time() - start_wall < timeout_s:
             rclpy.spin_once(monitor, timeout_sec=0.2)
             if monitor.mission_completed:
-                print(f"Mission finished successfully in {time.time() - start_wall:.1f}s!")
+                print(
+                    f"Mission finished successfully in {time.time() - start_wall:.1f}s!"
+                )
                 # Allow 10s extra for final telemetry packets to deliver over acoustic link
                 time.sleep(10.0)
                 break
             if launch_proc.poll() is not None:
-                print(f"WARNING: launch process exited early with code {launch_proc.returncode}")
+                print(
+                    f"WARNING: launch process exited early with code {launch_proc.returncode}"
+                )
                 break
 
     finally:
@@ -144,15 +153,21 @@ def run_e2e_demo(timeout_s: float = 420.0) -> int:
         print("Running post-sim cleanup...")
         subprocess.run(["bash", "tools/sim_cleanup.sh"], check=False)
 
-    print("\n================================================================================")
-    print("[5/5] VERIFYING ACCEPTANCE CRITERIA")
-    print("================================================================================")
+    print(
+        "\n================================================================================"
+    )
+    print(f"[5/5] VERIFYING ACCEPTANCE CRITERIA ({run_name})")
+    print(
+        "================================================================================"
+    )
 
     # Check 1: At least one contact on /surface/contacts
     contact_count = len(monitor.surface_contacts)
     check1 = contact_count >= 1
-    print(f"1. Surface contacts: {contact_count} unique contacts received "
-          f"({'PASS' if check1 else 'FAIL'})")
+    print(
+        f"1. Surface contacts: {contact_count} unique contacts received "
+        f"({'PASS' if check1 else 'FAIL'})"
+    )
 
     # Check 2: Heartbeats <= 15 s apart
     hb_count = len(monitor.heartbeat_stamps)
@@ -164,13 +179,17 @@ def run_e2e_demo(timeout_s: float = 420.0) -> int:
         ]
         max_hb_gap = max(gaps)
     check2 = (hb_count >= 3) and (max_hb_gap <= 15.5)
-    print(f"2. Heartbeats received: {hb_count}, max gap: {max_hb_gap:.2f}s "
-          f"({'PASS' if check2 else 'FAIL'})")
+    print(
+        f"2. Heartbeats received: {hb_count}, max gap: {max_hb_gap:.2f}s "
+        f"({'PASS' if check2 else 'FAIL'})"
+    )
 
     # Check 3: summary.json written
     latest_summary_path = Path("results/latest_summary.json")
     check3 = latest_summary_path.is_file() and latest_summary_path.stat().st_size > 0
-    print(f"3. summary.json written: {latest_summary_path} ({'PASS' if check3 else 'FAIL'})")
+    print(
+        f"3. summary.json written: {latest_summary_path} ({'PASS' if check3 else 'FAIL'})"
+    )
 
     # Check 4: Bag written
     bag_dirs = list(Path("results").glob("run_*_bag"))
@@ -184,23 +203,48 @@ def run_e2e_demo(timeout_s: float = 420.0) -> int:
         if mcap_files and mcap_files[0].stat().st_size > 1000:
             check4 = True
             bag_path_found = mcap_files[0]
-            print(f"4. MCAP bag written: {bag_path_found} ({bag_path_found.stat().st_size / 1024 / 1024:.2f} MB) (PASS)")
+            print(
+                f"4. MCAP bag written: {bag_path_found} ({bag_path_found.stat().st_size / 1024 / 1024:.2f} MB) ({'PASS' if bag_path_found.stat().st_size / 1024 / 1024 < 500.0 else 'WARN >500MB'})"
+            )
         else:
-            print(f"4. MCAP bag check: {latest_bag} (no valid .mcap file found) (FAIL)")
+            print(
+                f"4. MCAP bag check: {latest_bag} (no valid .mcap file found) (FAIL)"
+            )
     else:
         print("4. MCAP bag check: No bag directories found in results/ (FAIL)")
 
-    # Print summary.json verbatim
+    # Save copy of summary for this run
     if check3:
-        print("\n--- summary.json Contents ---")
+        dest_summary = Path(f"results/summary_{run_name}.json")
+        import shutil
+
+        shutil.copyfile(latest_summary_path, dest_summary)
+        print(f"\n--- summary.json Contents (saved to {dest_summary}) ---")
         with open(latest_summary_path, encoding="utf-8") as f:
             summary_content = f.read()
             print(summary_content)
 
     all_passed = check1 and check2 and check3 and check4
-    print(f"\nFinal Acceptance Verdict: {'ALL PASS' if all_passed else 'SOME CHECKS FAILED'}")
+    print(
+        f"\nFinal Acceptance Verdict ({run_name}): {'ALL PASS' if all_passed else 'SOME CHECKS FAILED'}"
+    )
     return 0 if all_passed else 1
 
 
 if __name__ == "__main__":
-    sys.exit(run_e2e_demo())
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Full-chain demo mission runner")
+    parser.add_argument(
+        "--run-name", default="default", help="Identifier for run (e.g. setting_A)"
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=420.0, help="Max mission timeout in seconds"
+    )
+    args = parser.parse_args()
+
+    import os
+
+    code = run_e2e_demo(timeout_s=args.timeout, run_name=args.run_name)
+    os._exit(code)
+
