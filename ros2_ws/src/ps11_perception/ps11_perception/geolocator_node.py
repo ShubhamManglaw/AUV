@@ -20,6 +20,7 @@ import numpy as np
 import rclpy
 from geometry_msgs.msg import Point
 from nav_msgs.msg import Odometry
+from ps11_common.params import load_yaml
 from ps11_interfaces.msg import Observation, ObservationArray, TrackArray
 from rclpy.duration import Duration
 from rclpy.node import Node
@@ -36,10 +37,12 @@ class GeolocatorNode(Node):
     def __init__(self) -> None:
         super().__init__("geolocator")
 
-        self.declare_parameter("max_range_m", 12.0)
-        self.declare_parameter("sigma_px", 8.0)
-        self.declare_parameter("sigma_alt_m", 0.1)
-        self.declare_parameter("sigma_nav_m", 0.2)
+        # Load parameters from perception.yaml (§1.4)
+        cfg = load_yaml("perception.yaml").get("geolocator", {})
+        self.declare_parameter("max_range_m", float(cfg.get("max_range_m", 12.0)))
+        self.declare_parameter("sigma_px", float(cfg.get("sigma_px", 8.0)))
+        self.declare_parameter("sigma_alt_m", float(cfg.get("sigma_alt_m", 0.1)))
+        self.declare_parameter("sigma_nav_m", float(cfg.get("sigma_nav_m", 0.2)))
         self.declare_parameter("target_frame", "map")
         self.declare_parameter("camera_optical_frame", "camera_optical_frame")
 
@@ -211,7 +214,8 @@ def main(args: list[str] | None = None) -> None:
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":

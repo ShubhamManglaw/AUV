@@ -1,6 +1,7 @@
 """Unit tests for odom_noise error model (§9.2, T1.3)."""
 
 import math
+
 from ps11_nav.odom_noise import OdomNoiseModel
 
 

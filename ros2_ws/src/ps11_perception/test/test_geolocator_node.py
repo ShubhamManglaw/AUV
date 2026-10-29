@@ -1,7 +1,10 @@
 """Node integration test for GeolocatorNode with static TF and synthetic tracks (Q2 / T2.7)."""
 
 import math
+import os
 import time
+
+os.environ["ROS_DOMAIN_ID"] = "42"
 
 import rclpy
 from geometry_msgs.msg import TransformStamped
@@ -71,7 +74,7 @@ class GeolocatorTestHarness(Node):
 
 def test_geolocator_node_with_static_tf_and_synthetic_tracks() -> None:
     """GeolocatorNode receives synthetic tracks, performs TF lookup, and outputs correct ObservationArray."""
-    rclpy.init()
+    rclpy.init(domain_id=42)
     try:
         harness = GeolocatorTestHarness()
         geo_node = GeolocatorNode()
@@ -111,16 +114,22 @@ def test_geolocator_node_with_static_tf_and_synthetic_tracks() -> None:
 
         # Spin until observation received or timeout
         start_time = time.time()
-        while (
-            time.time() - start_time < 3.0 and len(harness.received_observations) == 0
+        while time.time() - start_time < 3.0 and not any(
+            any(obs.track_id == 42 for obs in arr.observations)
+            for arr in harness.received_observations
         ):
             rclpy.spin_once(harness, timeout_sec=0.05)
             rclpy.spin_once(geo_node, timeout_sec=0.05)
 
-        assert len(harness.received_observations) > 0, (
-            "No ObservationArray received from GeolocatorNode"
+        matching = [
+            arr
+            for arr in harness.received_observations
+            if any(obs.track_id == 42 for obs in arr.observations)
+        ]
+        assert len(matching) > 0, (
+            f"No ObservationArray containing track 42 received (got {len(harness.received_observations)} arrays)"
         )
-        obs_array = harness.received_observations[0]
+        obs_array = matching[0]
         assert len(obs_array.observations) == 1, (
             f"Expected 1 observation, got {len(obs_array.observations)}"
         )

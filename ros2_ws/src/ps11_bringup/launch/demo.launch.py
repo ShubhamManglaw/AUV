@@ -12,7 +12,6 @@ Brings up complete system:
 
 import os
 from datetime import datetime, timezone
-from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -101,11 +100,13 @@ def generate_launch_description() -> LaunchDescription:
         package="ps11_telemetry",
         executable="link_emulator",
         name="link_emulator",
-        parameters=[{
-            "use_sim_time": True,
-            "profile": link_profile,
-            "mode": "pull",
-        }],
+        parameters=[
+            {
+                "use_sim_time": True,
+                "profile": link_profile,
+                "mode": "pull",
+            }
+        ],
         output="screen",
     )
 
@@ -122,11 +123,13 @@ def generate_launch_description() -> LaunchDescription:
         package="ps11_bringup",
         executable="metrics",
         name="metrics",
-        parameters=[{
-            "use_sim_time": True,
-            "scenario": scenario,
-            "link_profile": link_profile,
-        }],
+        parameters=[
+            {
+                "use_sim_time": True,
+                "scenario": scenario,
+                "link_profile": link_profile,
+            }
+        ],
         output="screen",
     )
 
@@ -135,11 +138,13 @@ def generate_launch_description() -> LaunchDescription:
         package="foxglove_bridge",
         executable="foxglove_bridge",
         name="foxglove_bridge",
-        parameters=[{
-            "use_sim_time": True,
-            "port": 8765,
-            "send_buffer_limit": 100000000,
-        }],
+        parameters=[
+            {
+                "use_sim_time": True,
+                "port": 8765,
+                "send_buffer_limit": 100000000,
+            }
+        ],
         output="screen",
     )
 
@@ -164,18 +169,20 @@ def generate_launch_description() -> LaunchDescription:
         output="screen",
     )
 
-    return LaunchDescription([
-        mode_arg,
-        scenario_arg,
-        gui_arg,
-        policy_arg,
-        link_profile_arg,
-        record_arg,
-        sim_launch,
-        vehicle_launch,
-        link_emulator_node,
-        surface_launch,
-        metrics_node,
-        foxglove_bridge_node,
-        bag_record_proc,
-    ])
+    return LaunchDescription(
+        [
+            mode_arg,
+            scenario_arg,
+            gui_arg,
+            policy_arg,
+            link_profile_arg,
+            record_arg,
+            sim_launch,
+            vehicle_launch,
+            link_emulator_node,
+            surface_launch,
+            metrics_node,
+            foxglove_bridge_node,
+            bag_record_proc,
+        ]
+    )

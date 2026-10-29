@@ -30,7 +30,7 @@ def generate_lawnmower_waypoints(
     target_z = seabed_z + altitude
 
     # Number of legs needed to cover area_y
-    n_legs = max(2, int(math.ceil(area_y / leg_spacing)) + 1)
+    n_legs = max(2, math.ceil(area_y / leg_spacing) + 1)
     waypoints: list[Waypoint] = []
 
     for i in range(n_legs):

@@ -99,3 +99,28 @@ def test_low_confidence_filtered() -> None:
     for _ in range(10):
         confirmed = tracker.update(box, conf, cls_id)
         assert len(confirmed) == 0, "Low-confidence detections should not be confirmed"
+
+
+def test_closeup_debris_overcomes_distant_misclassification() -> None:
+    """Close-up high-confidence debris sightings override earlier faint misclassifications."""
+    tracker = ObjectTracker(min_hits=5, min_mean_conf=0.4)
+
+    box = np.array([[200.0, 200.0, 260.0, 260.0]])
+
+    # 4 initial distant frames classified as starfish (class 1) with low confidence (0.45)
+    conf_distant = np.array([0.45])
+    for _ in range(4):
+        tracker.update(box, conf_distant, np.array([1]))
+
+    # Now vehicle approaches closer: 4 frames identified as debris (class 0) with high confidence (0.95)
+    conf_close = np.array([0.95])
+    last_res = None
+    for _ in range(4):
+        res = tracker.update(box, conf_close, np.array([0]))
+        if res:
+            last_res = res[0]
+
+    assert last_res is not None
+    assert last_res.hits == 8
+    # Recency, high confidence, and debris priority must select debris (class 0)
+    assert last_res.class_id == 0, f"Expected debris (0), got {last_res.class_id}"

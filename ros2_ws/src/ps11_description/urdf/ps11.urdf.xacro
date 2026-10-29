@@ -68,7 +68,7 @@
         <optical_frame_id>camera_optical_frame</optical_frame_id>
       </camera>
       <always_on>1</always_on>
-      <update_rate>10</update_rate>
+      <update_rate>30</update_rate>
       <visualize>true</visualize>
       <topic>/vehicle/camera/image</topic>
       <camera_info_topic>/vehicle/camera/camera_info</camera_info_topic>
@@ -88,7 +88,7 @@
         <optical_frame_id>camera_optical_frame</optical_frame_id>
       </camera>
       <always_on>1</always_on>
-      <update_rate>10</update_rate>
+      <update_rate>30</update_rate>
       <visualize>true</visualize>
       <topic>/vehicle/camera/depth_image</topic>
       <camera_info_topic>/vehicle/camera/depth/camera_info</camera_info_topic>

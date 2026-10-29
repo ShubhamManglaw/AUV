@@ -15,7 +15,6 @@ Pure fusion logic:
 from __future__ import annotations
 
 import math
-from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -37,6 +36,7 @@ class FusedContact:
     sightings: int
     associated_tracks: set[int] = field(default_factory=set)
     class_votes: list[int] = field(default_factory=list)
+    class_confidences: list[float] = field(default_factory=list)
     sum_inv_var: float = 0.0
     sum_wx: float = 0.0
     sum_wy: float = 0.0
@@ -126,6 +126,7 @@ class ContactDatabase:
                 sightings=1,
                 associated_tracks={track_id},
                 class_votes=[class_id],
+                class_confidences=[float(confidence)],
                 sum_inv_var=w,
                 sum_wx=w * x,
                 sum_wy=w * y,
@@ -137,9 +138,26 @@ class ContactDatabase:
         # Fuse into existing contact
         matched_contact.associated_tracks.add(track_id)
         matched_contact.class_votes.append(class_id)
-        matched_contact.class_id = Counter(matched_contact.class_votes).most_common(1)[
-            0
-        ][0]
+        matched_contact.class_confidences.append(float(confidence))
+
+        # Recency & confidence-weighted class determination (§10.8):
+        # Recent, high-confidence observations dominate early distant estimates,
+        # with priority boost for defence proxy / debris.
+        class_scores: dict[int, float] = {}
+        total_v = len(matched_contact.class_votes)
+        for idx in range(total_v):
+            cid = matched_contact.class_votes[idx]
+            c_conf = (
+                matched_contact.class_confidences[idx]
+                if idx < len(matched_contact.class_confidences)
+                else 0.5
+            )
+            recency = 1.0 + 3.0 * (((idx + 1) / total_v) ** 2)
+            priority = 1.5 if cid == 0 else 1.0
+            w_vote = (c_conf * c_conf) * priority * recency
+            class_scores[cid] = class_scores.get(cid, 0.0) + w_vote
+
+        matched_contact.class_id = max(class_scores, key=class_scores.get)
         matched_contact.confidence = max(matched_contact.confidence, float(confidence))
         matched_contact.last_seen_stamp = stamp
         matched_contact.sightings += 1

@@ -1,15 +1,17 @@
 {
   "configById": {
-    "ImageView!vehicle_camera": {
+    "Image!vehicle_camera": {
+      "title": "Camera — annotated detections",
       "cameraTopic": "/vehicle/perception/image_annotated/compressed",
-      "enabledMarkerTopics": [],
+      "imageTopic": "/vehicle/perception/image_annotated/compressed",
       "transformMarkers": false,
       "synchronize": false
     },
     "3D!vehicle_onboard_view": {
+      "title": "VEHICLE — onboard (simulation)",
       "cameraState": {
         "perspective": true,
-        "distance": 8.0,
+        "distance": 10.0,
         "phi": 60.0,
         "thetaOffset": 0.0,
         "targetOffset": [0, 0, 0],
@@ -42,13 +44,14 @@
       }
     },
     "3D!surface_topdown_view": {
+      "title": "SURFACE — received over emulated 64 bps acoustic link",
       "cameraState": {
         "perspective": false,
-        "distance": 60.0,
+        "distance": 45.0,
         "phi": 0.0,
         "thetaOffset": 0.0,
         "targetOffset": [0, 0, 0],
-        "target": [15, 0, -15],
+        "target": [25.0, 0.0, -15.0],
         "fovy": 45.0
       },
       "followMode": "fixed",
@@ -56,9 +59,9 @@
         "grid": {
           "layerId": "grid",
           "visible": true,
-          "size": 100,
-          "divisions": 10,
-          "position": [0, 0, -15.0],
+          "size": 60,
+          "divisions": 6,
+          "position": [25.0, 0.0, -15.0],
           "color": "#404040"
         }
       },
@@ -68,45 +71,61 @@
       }
     },
     "Table!surface_contacts": {
+      "title": "Decoded Surface Contacts",
       "topicPath": "/surface/contacts.contacts"
     },
-    "Plot!bandwidth_counters": {
-      "title": "Bandwidth Comparison (Cumulative Bits)",
+    "Plot!semantic_bits_plot": {
+      "title": "Semantic bits sent (cumulative)",
+      "paths": [
+        {
+          "value": "/eval/counters.semantic_bits_sent",
+          "enabled": true,
+          "color": "#4ECDC4",
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "showLegend": false,
+      "minYValue": 0
+    },
+    "Plot!video_bits_plot": {
+      "title": "Video-equivalent bits (cumulative)",
       "paths": [
         {
           "value": "/eval/counters.jpeg_equiv_bits",
           "enabled": true,
-          "label": "JPEG-equivalent (quality 75)",
-          "color": "#E4572E"
-        },
-        {
-          "value": "/eval/counters.semantic_bits_sent",
-          "enabled": true,
-          "label": "Semantic Telemetry (Acoustic)",
-          "color": "#4ECDC4"
+          "color": "#E4572E",
+          "timestampMethod": "receiveTime"
         }
       ],
-      "showLegend": true
+      "showLegend": false,
+      "minYValue": 0
     },
-    "Indicator!compression_ratio": {
-      "path": "/eval/counters.ratio_vs_jpeg",
-      "style": "normal",
-      "label": "Bandwidth Compression Ratio",
-      "precision": 1
+    "RawMessages!semantic_bits": {
+      "title": "Bits sent (semantic)",
+      "topicPath": "/eval/counters.semantic_bits_sent"
     },
-    "Indicator!video_airtime": {
-      "path": "/eval/counters.jpeg_airtime_at_link_s",
-      "style": "normal",
-      "label": "Video Airtime Needed (s) on 64 bps Link",
-      "precision": 0
+    "RawMessages!video_bits": {
+      "title": "Video-equivalent bits (JPEG)",
+      "topicPath": "/eval/counters.jpeg_equiv_bits"
     },
-    "Indicator!surface_contacts_count": {
-      "path": "/eval/counters.contacts_at_surface",
-      "style": "normal",
-      "label": "Contacts at Surface",
-      "precision": 0
+    "RawMessages!ratio_jpeg": {
+      "title": "Ratio vs JPEG",
+      "topicPath": "/eval/counters.ratio_vs_jpeg"
+    },
+    "RawMessages!video_airtime": {
+      "title": "Video airtime on 64 bps link (s)",
+      "topicPath": "/eval/counters.jpeg_airtime_at_link_s"
+    },
+    "RawMessages!correct_contacts": {
+      "title": "Contacts at surface (correct)",
+      "topicPath": "/eval/counters.correct_contacts"
+    },
+    "RawMessages!false_contacts": {
+      "title": "Contacts at surface (false)",
+      "topicPath": "/eval/counters.false_contacts"
     },
     "RawMessages!link_stats": {
+      "title": "Acoustic Link Stats (/link/stats)",
       "topicPath": "/link/stats"
     }
   },
@@ -122,7 +141,7 @@
       "first": {
         "title": "VEHICLE — onboard (simulation)",
         "direction": "column",
-        "first": "ImageView!vehicle_camera",
+        "first": "Image!vehicle_camera",
         "second": "3D!vehicle_onboard_view",
         "splitPercentage": 50
       },
@@ -138,25 +157,45 @@
     "second": {
       "title": "Bandwidth & Telemetry Evaluation",
       "direction": "row",
-      "first": "Plot!bandwidth_counters",
+      "first": {
+        "direction": "column",
+        "first": "Plot!semantic_bits_plot",
+        "second": "Plot!video_bits_plot",
+        "splitPercentage": 50
+      },
       "second": {
         "direction": "row",
         "first": {
           "direction": "column",
-          "first": "Indicator!compression_ratio",
-          "second": "Indicator!video_airtime",
-          "splitPercentage": 50
+          "first": "RawMessages!semantic_bits",
+          "second": {
+            "direction": "column",
+            "first": "RawMessages!video_bits",
+            "second": "RawMessages!ratio_jpeg",
+            "splitPercentage": 50
+          },
+          "splitPercentage": 33
         },
         "second": {
           "direction": "column",
-          "first": "Indicator!surface_contacts_count",
-          "second": "RawMessages!link_stats",
-          "splitPercentage": 50
+          "first": "RawMessages!video_airtime",
+          "second": {
+            "direction": "column",
+            "first": {
+              "direction": "row",
+              "first": "RawMessages!correct_contacts",
+              "second": "RawMessages!false_contacts",
+              "splitPercentage": 50
+            },
+            "second": "RawMessages!link_stats",
+            "splitPercentage": 50
+          },
+          "splitPercentage": 33
         },
         "splitPercentage": 50
       },
-      "splitPercentage": 50
+      "splitPercentage": 40
     },
-    "splitPercentage": 75
+    "splitPercentage": 68
   }
 }

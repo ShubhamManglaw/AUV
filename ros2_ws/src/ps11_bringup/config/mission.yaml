@@ -1,6 +1,4 @@
-# Mission parameters (§9.1)
 scenario: demo
-
 lawnmower:
   survey_origin_x_m: 5.0
   survey_origin_y_m: -10.0
@@ -12,7 +10,13 @@ lawnmower:
   turn_speed_mps: 0.8
   waypoint_tolerance_m: 2.0
   seabed_z_m: -15.0
-
+control:
+  kp_yaw: 1.0
+  max_yaw_rate_rads: 0.8
+  yaw_deadband_rad: 0.02
+  kp_z: 0.4
+  max_v_z_mps: 0.3
+  z_deadband_m: 0.04
 scenarios:
   demo:
     survey_origin_x_m: 5.0

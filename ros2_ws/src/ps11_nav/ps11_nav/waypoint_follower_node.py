@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import math
+
+import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-import rclpy
+from ps11_common.params import load_yaml
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 from std_msgs.msg import UInt8
 
-from ps11_common.params import load_yaml
 from ps11_nav.lawnmower import Waypoint, generate_lawnmower_waypoints
 from ps11_nav.odom_noise_node import euler_from_quaternion
 
@@ -47,6 +48,19 @@ class WaypointFollowerNode(Node):
         self.survey_speed = float(sc_cfg.get("survey_speed_mps", 1.0))
         self.turn_speed = float(sc_cfg.get("turn_speed_mps", 0.5))
         self.waypoint_tolerance = float(sc_cfg.get("waypoint_tolerance_m", 2.0))
+
+        # Control gains and deadbands from mission.yaml (smooth kinematic control)
+        ctrl_cfg = mission_cfg.get("control", {})
+        self.kp_yaw = float(ctrl_cfg.get("kp_yaw", 1.0))
+        self.max_yaw_rate = float(ctrl_cfg.get("max_yaw_rate_rads", 0.8))
+        self.yaw_deadband = float(ctrl_cfg.get("yaw_deadband_rad", 0.02))
+        self.kp_z = float(ctrl_cfg.get("kp_z", 0.4))
+        self.max_v_z = float(ctrl_cfg.get("max_v_z_mps", 0.3))
+        self.z_deadband = float(ctrl_cfg.get("z_deadband_m", 0.04))
+
+        # Filtered velocity state for smoothing
+        self.filtered_v_z = 0.0
+        self.filtered_yaw_rate = 0.0
 
         # Generate lawnmower waypoints in map frame
         self.waypoints = generate_lawnmower_waypoints(
@@ -227,23 +241,38 @@ class WaypointFollowerNode(Node):
 
         yaw_error = wrap_angle(desired_yaw - self.current_yaw)
 
-        # Proportional heading control (clamped)
-        kp_yaw = 2.0
-        yaw_rate = max(-1.2, min(1.2, kp_yaw * yaw_error))
+        # Proportional heading control with deadband to eliminate heading wobble
+        if abs(yaw_error) < self.yaw_deadband:
+            target_yaw_rate = 0.0
+        else:
+            target_yaw_rate = max(
+                -self.max_yaw_rate, min(self.max_yaw_rate, self.kp_yaw * yaw_error)
+            )
+
+        # Smooth yaw rate (low-pass filter to eliminate high-frequency chatter)
+        self.filtered_yaw_rate = 0.6 * self.filtered_yaw_rate + 0.4 * target_yaw_rate
 
         # Speed control: modulate speed during turns
-        turn_factor = max(0.5, math.cos(yaw_error))
+        if abs(yaw_error) > 0.1:
+            turn_factor = max(0.5, math.cos(yaw_error))
+        else:
+            turn_factor = 1.0
         v_forward = speed * turn_factor
 
-        # Proportional depth / altitude control
-        kp_z = 1.0
+        # Proportional depth / altitude control with deadband to prevent vertical bouncing
         z_error = target_wp.z - self.current_z
-        v_z = max(-0.5, min(0.5, kp_z * z_error))
+        if abs(z_error) < self.z_deadband:
+            target_v_z = 0.0
+        else:
+            target_v_z = max(-self.max_v_z, min(self.max_v_z, self.kp_z * z_error))
+
+        # Smooth vertical velocity (low-pass filter)
+        self.filtered_v_z = 0.6 * self.filtered_v_z + 0.4 * target_v_z
 
         twist.linear.x = float(v_forward)
         twist.linear.y = 0.0
-        twist.linear.z = float(v_z)
-        twist.angular.z = float(yaw_rate)
+        twist.linear.z = float(self.filtered_v_z)
+        twist.angular.z = float(self.filtered_yaw_rate)
 
         self.pub_cmd_vel.publish(twist)
 

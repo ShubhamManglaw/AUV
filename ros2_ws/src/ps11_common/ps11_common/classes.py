@@ -56,6 +56,10 @@ class ClassDatabase:
             )
         return self._by_name[name]
 
+    def id_to_name(self, class_id: int) -> str:
+        """Look up class name by integer ID."""
+        return self.get_by_id(class_id).name
+
     def all_classes(self) -> list[ClassInfo]:
         """Return all classes ordered by ID."""
         return [self._by_id[k] for k in sorted(self._by_id.keys())]

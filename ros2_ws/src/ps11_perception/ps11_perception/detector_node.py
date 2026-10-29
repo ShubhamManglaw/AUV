@@ -84,10 +84,29 @@ class DetectorNode(Node):
         imgsz = int(
             self.declare_parameter("imgsz", int(params.get("imgsz", 640))).value
         )
-        self.max_rate_hz = float(
+        self.nominal_rate_hz = float(
             self.declare_parameter(
-                "max_rate_hz", float(params.get("max_rate_hz", 5.0))
+                "nominal_rate_hz", float(params.get("nominal_rate_hz", 10.0))
             ).value
+        )
+        self.boosted_rate_hz = float(
+            self.declare_parameter(
+                "boosted_rate_hz", float(params.get("boosted_rate_hz", 30.0))
+            ).value
+        )
+        self.boost_hold_s = float(
+            self.declare_parameter(
+                "boost_hold_s", float(params.get("boost_hold_s", 3.0))
+            ).value
+        )
+        self.max_rate_hz = max(
+            self.nominal_rate_hz,
+            self.boosted_rate_hz,
+            float(
+                self.declare_parameter(
+                    "max_rate_hz", float(params.get("max_rate_hz", 30.0))
+                ).value
+            ),
         )
         input_topic = str(
             self.declare_parameter(
@@ -96,7 +115,7 @@ class DetectorNode(Node):
         )
 
         self.get_logger().info(
-            f"Initializing YOLODetector from {model_file} on device {device} (rate cap: {self.max_rate_hz} Hz)"
+            f"Initializing YOLODetector from {model_file} on device {device} (rate: {self.nominal_rate_hz} Hz nominal / {self.boosted_rate_hz} Hz boosted)"
         )
 
         # Initialize detector logic
@@ -118,6 +137,8 @@ class DetectorNode(Node):
         self._new_frame_available: bool = False
         self._last_wall_time: float = 0.0
         self._last_sim_time = self.get_clock().now()
+        self._boost_until_wall_time: float = 0.0
+        self._is_boosted: bool = False
 
         # Publishers
         qos_rel = QoSProfile(depth=10, reliability=ReliabilityPolicy.RELIABLE)
@@ -143,8 +164,8 @@ class DetectorNode(Node):
             Image, input_topic, self._on_image, qos_profile_sensor_data
         )
 
-        # Rate-capping timer: ticks frequently, worker enforces strict max_rate_hz cap
-        check_period = min(0.02, 1.0 / (2.0 * self.max_rate_hz))
+        # Rate-capping timer: ticks fast enough (100 Hz / 0.01s) to support 30 Hz dispatch
+        check_period = min(0.01, 1.0 / (2.0 * self.max_rate_hz))
         self.timer = self.create_timer(check_period, self._on_timer)
 
         self.get_logger().info(
@@ -180,9 +201,13 @@ class DetectorNode(Node):
         now_sim = self.get_clock().now()
         dt_wall = now_wall - self._last_wall_time
         dt_sim = (now_sim - self._last_sim_time).nanoseconds * 1e-9
-        min_period = 1.0 / self.max_rate_hz
 
-        if dt_wall < (min_period * 0.95) or dt_sim < (min_period * 0.95):
+        # Dynamic rate: boosted if within boost window, else nominal
+        is_boosted = now_wall < self._boost_until_wall_time
+        active_rate_hz = self.boosted_rate_hz if is_boosted else self.nominal_rate_hz
+        min_period = 1.0 / active_rate_hz
+
+        if dt_wall < (min_period * 0.90) or dt_sim < (min_period * 0.90):
             return
 
         msg: Image | None = None
@@ -207,6 +232,20 @@ class DetectorNode(Node):
         try:
             # Run inference
             detections: list[Detection] = self.detector.detect(img_rgb)
+
+            # Dynamic rate boost trigger: if detections present, boost rate
+            if len(detections) > 0:
+                if not self._is_boosted:
+                    self.get_logger().info(
+                        f"Candidate detected ({len(detections)} objects). Boosting detector rate to {self.boosted_rate_hz:.0f} Hz."
+                    )
+                self._is_boosted = True
+                self._boost_until_wall_time = now_wall + self.boost_hold_s
+            elif self._is_boosted and now_wall >= self._boost_until_wall_time:
+                self._is_boosted = False
+                self.get_logger().info(
+                    f"No objects detected for {self.boost_hold_s:.1f}s. Reverting detector to nominal {self.nominal_rate_hz:.0f} Hz."
+                )
 
             # Build Detection2DArray
             det_array = Detection2DArray()

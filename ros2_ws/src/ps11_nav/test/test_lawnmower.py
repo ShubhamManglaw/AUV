@@ -1,6 +1,7 @@
 """Unit tests for lawnmower waypoint generator (§9.1, T1.5)."""
 
 import math
+
 from ps11_nav.lawnmower import generate_lawnmower_waypoints, point_to_segment_distance
 
 

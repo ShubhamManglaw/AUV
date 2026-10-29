@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import numpy as np
 import rclpy
+from ps11_common.params import load_yaml
 from ps11_interfaces.msg import Track, TrackArray
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
@@ -25,17 +26,37 @@ class TrackerNode(Node):
     def __init__(self) -> None:
         super().__init__("tracker")
 
-        self.declare_parameter("min_hits", 5)
-        self.declare_parameter("min_mean_conf", 0.4)
-        self.declare_parameter("track_activation_threshold", 0.25)
-        self.declare_parameter("lost_track_buffer", 30)
-        self.declare_parameter("minimum_matching_threshold", 0.8)
+        # Load parameters from perception.yaml (§1.4, no hard-coded constants)
+        cfg = load_yaml("perception.yaml").get("tracker", {})
+        self.declare_parameter("min_hits", int(cfg.get("min_hits", 1)))
+        self.declare_parameter("min_mean_conf", float(cfg.get("min_mean_conf", 0.12)))
+        self.declare_parameter(
+            "track_activation_threshold",
+            float(cfg.get("track_activation_threshold", 0.10)),
+        )
+        self.declare_parameter(
+            "lost_track_buffer", int(cfg.get("lost_track_buffer", 45))
+        )
+        self.declare_parameter(
+            "minimum_matching_threshold",
+            float(cfg.get("minimum_matching_threshold", 0.25)),
+        )
+        self.declare_parameter(
+            "recency_weight_power",
+            float(cfg.get("recency_weight_power", 2.0)),
+        )
+        self.declare_parameter(
+            "debris_priority_boost",
+            float(cfg.get("debris_priority_boost", 1.5)),
+        )
 
-        min_hits = self.get_parameter("min_hits").value
-        min_mean_conf = self.get_parameter("min_mean_conf").value
-        track_act = self.get_parameter("track_activation_threshold").value
-        lost_buf = self.get_parameter("lost_track_buffer").value
-        match_thresh = self.get_parameter("minimum_matching_threshold").value
+        min_hits = int(self.get_parameter("min_hits").value)
+        min_mean_conf = float(self.get_parameter("min_mean_conf").value)
+        track_act = float(self.get_parameter("track_activation_threshold").value)
+        lost_buf = int(self.get_parameter("lost_track_buffer").value)
+        match_thresh = float(self.get_parameter("minimum_matching_threshold").value)
+        recency_pow = float(self.get_parameter("recency_weight_power").value)
+        debris_boost = float(self.get_parameter("debris_priority_boost").value)
 
         self.tracker = ObjectTracker(
             min_hits=min_hits,
@@ -43,6 +64,8 @@ class TrackerNode(Node):
             track_activation_threshold=track_act,
             lost_track_buffer=lost_buf,
             minimum_matching_threshold=match_thresh,
+            recency_weight_power=recency_pow,
+            debris_priority_boost=debris_boost,
         )
 
         qos_rel = QoSProfile(depth=10, reliability=ReliabilityPolicy.RELIABLE)
@@ -143,7 +166,8 @@ def main(args: list[str] | None = None) -> None:
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":

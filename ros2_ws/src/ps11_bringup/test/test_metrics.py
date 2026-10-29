@@ -225,4 +225,3 @@ def test_false_contacts_at_surface():
     assert counters.mean_first_report_latency_s == pytest.approx(4.5)
     # Old latency: arrival 6.5 - first_view 1.0 = 5.5s
     assert counters.mean_time_since_mission_start_s == pytest.approx(5.5)
-

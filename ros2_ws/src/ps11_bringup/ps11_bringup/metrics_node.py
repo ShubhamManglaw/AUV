@@ -243,6 +243,8 @@ class MetricsNode(Node):
         msg.jpeg_airtime_at_link_s = float(self.latest_counters.jpeg_airtime_at_link_s)
         msg.contacts_onboard = int(self.latest_counters.contacts_onboard)
         msg.contacts_at_surface = int(self.latest_counters.contacts_at_surface)
+        msg.correct_contacts = int(self.latest_counters.correct_contacts_at_surface)
+        msg.false_contacts = int(self.latest_counters.false_contacts_at_surface)
         msg.gt_objects_in_view = int(self.latest_counters.gt_objects_total)
         msg.gt_objects_reported = int(self.latest_counters.gt_objects_reported)
         msg.mean_position_error_m = float(self.latest_counters.mean_position_error_m)

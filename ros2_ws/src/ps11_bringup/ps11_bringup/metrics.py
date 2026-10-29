@@ -44,7 +44,9 @@ class MatchResult:
     gt: GroundTruthObject
     contact: ContactObservation
     distance_m: float
-    latency_s: float  # onboard-to-operator delay: surface_arrival_s - contact.first_seen_s
+    latency_s: (
+        float  # onboard-to-operator delay: surface_arrival_s - contact.first_seen_s
+    )
     time_since_mission_start_s: float = 0.0
 
 

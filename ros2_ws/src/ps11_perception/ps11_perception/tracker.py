@@ -9,7 +9,6 @@ Pure tracking logic:
 
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
@@ -36,14 +35,18 @@ class ObjectTracker:
 
     def __init__(
         self,
-        min_hits: int = 5,
-        min_mean_conf: float = 0.4,
+        min_hits: int = 3,
+        min_mean_conf: float = 0.30,
         track_activation_threshold: float = 0.25,
         lost_track_buffer: int = 30,
         minimum_matching_threshold: float = 0.8,
+        recency_weight_power: float = 2.0,
+        debris_priority_boost: float = 1.5,
     ) -> None:
         self.min_hits = min_hits
         self.min_mean_conf = min_mean_conf
+        self.recency_weight_power = recency_weight_power
+        self.debris_priority_boost = debris_priority_boost
         self.tracker = sv.ByteTrack(
             track_activation_threshold=track_activation_threshold,
             lost_track_buffer=lost_track_buffer,
@@ -103,10 +106,29 @@ class ObjectTracker:
             mean_conf = float(np.mean(hist["confidences"]))
 
             # Confirmation condition (§10.6):
-            # seen in at least min_hits (5) frames with mean confidence >= min_mean_conf (0.4)
+            # seen in at least min_hits frames with mean confidence >= min_mean_conf
             if hits >= self.min_hits and mean_conf >= self.min_mean_conf:
-                # Majority vote class across full track history
-                majority_class = Counter(hist["class_ids"]).most_common(1)[0][0]
+                # Recency & confidence-weighted class assignment (§10.6):
+                # When distant, initial observations classify the object.
+                # When moving closer, high-confidence and recent sightings receive
+                # progressive favor, with priority boost for defence proxy / debris.
+                class_scores: dict[int, float] = {}
+                n_obs = len(hist["class_ids"])
+                for k in range(n_obs):
+                    past_cid = hist["class_ids"][k]
+                    past_conf = hist["confidences"][k]
+                    recency_norm = (k + 1) / n_obs
+                    recency_factor = 1.0 + 3.0 * (
+                        recency_norm**self.recency_weight_power
+                    )
+                    conf_factor = past_conf * past_conf
+                    priority_factor = (
+                        self.debris_priority_boost if past_cid == 0 else 1.0
+                    )
+                    score_k = recency_factor * conf_factor * priority_factor
+                    class_scores[past_cid] = class_scores.get(past_cid, 0.0) + score_k
+
+                assigned_class = max(class_scores, key=class_scores.get)
                 # Confidence is mean over the last 10 hits
                 recent_conf = float(np.mean(hist["confidences"][-10:]))
 
@@ -119,7 +141,7 @@ class ObjectTracker:
                 confirmed_tracks.append(
                     TrackedObject(
                         track_id=t_id,
-                        class_id=majority_class,
+                        class_id=assigned_class,
                         confidence=recent_conf,
                         u=u,
                         v=v,

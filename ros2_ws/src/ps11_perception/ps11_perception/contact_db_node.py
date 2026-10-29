@@ -15,6 +15,7 @@ from typing import Any
 import rclpy
 from geometry_msgs.msg import Point
 from ps11_common.classes import ClassDatabase
+from ps11_common.params import load_yaml
 from ps11_interfaces.msg import Contact, ContactArray, ObservationArray
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
@@ -29,9 +30,13 @@ class ContactDbNode(Node):
     def __init__(self) -> None:
         super().__init__("contact_db")
 
-        self.declare_parameter("gate_m", 2.0)
-        self.declare_parameter("sigma_floor_m", 0.3)
-        self.declare_parameter("publish_rate_hz", 2.0)
+        # Load parameters from perception.yaml (§1.4)
+        cfg = load_yaml("perception.yaml").get("contact_db", {})
+        self.declare_parameter("gate_m", float(cfg.get("gate_m", 2.0)))
+        self.declare_parameter("sigma_floor_m", float(cfg.get("sigma_floor_m", 0.3)))
+        self.declare_parameter(
+            "publish_rate_hz", float(cfg.get("publish_rate_hz", 2.0))
+        )
 
         gate_m = float(self.get_parameter("gate_m").value)
         sigma_floor_m = float(self.get_parameter("sigma_floor_m").value)
@@ -122,7 +127,10 @@ class ContactDbNode(Node):
     def _create_markers(self, contacts: list[FusedContact], now: Any) -> MarkerArray:
         marker_array = MarkerArray()
         for c in contacts:
-            c_name = self.class_db.id_to_name(c.class_id)
+            try:
+                c_name = self.class_db.id_to_name(c.class_id)
+            except KeyError:
+                c_name = f"class_{c.class_id}"
             color = self.class_colors.get(c.class_id, (1.0, 1.0, 1.0, 0.8))
 
             # Sphere marker for contact location
@@ -197,7 +205,8 @@ def main(args: list[str] | None = None) -> None:
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":

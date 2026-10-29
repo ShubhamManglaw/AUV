@@ -33,7 +33,15 @@ All notable changes and interface updates to the PS11-AUV project will be docume
 - Implemented `link_emulator` ROS 2 node (`ps11_telemetry/link_emulator_node.py`) wrapping `LinkModel` with sim-time support, `/link/tx` subscription, and `/link/rx`, `/link/tx_ready`, `/link/stats` publishers.
 - Added unit tests with simulated clock in `ps11_telemetry/test/test_link_model.py`.
 
-## T3.4: surface decoder and mission start time parameter
+## T4.3: Foxglove layout improvements and DemoCounters interface update
 
-- §11.1 plan update: Surface decoder cannot access vehicle odometry per honesty rule H1. Replaced odometry-based mission start with shared parameter `mission_start_s` in `scheduler.yaml` (default 0.0 = sim start), read by both `scheduler` and `surface_decoder`.
+- Added `uint32 correct_contacts` and `uint32 false_contacts` to `DemoCounters.msg` and updated `implementation_plan.md` §14.2.
+- Updated `metrics_node.py` to publish `correct_contacts` (ground-truth matched contacts) and `false_contacts` (unmatched surface contacts) on `/eval/counters`.
+- Upgraded `ps11_pitch_layout.json`:
+  - Replaced unsupported `ImageView` panel with Foxglove native `Image` panel on `/vehicle/perception/image_annotated/compressed`.
+  - Replaced `Indicator` panels with dedicated `RawMessages` panels for semantic bits sent, JPEG-equivalent bits, ratio vs JPEG, video airtime on 64 bps link, and correct vs false surface contacts.
+  - Split bandwidth comparison plot into separate `Semantic bits sent (cumulative)` and `Video-equivalent bits (cumulative)` panels with receive-time timestamps to prevent vertical axis compression.
+  - Set panel titles adhering strictly to plan §13.
+  - Adjusted left 3D onboard camera to 10 m following `base_link`, and right 3D surface view to fixed `map` top-down orthographic view of 50x30 m survey area with 10 m grid.
+  - Scaled up surface marker visuals in `surface_decoder_node.py` for crystal-clear readability from high altitude.
 

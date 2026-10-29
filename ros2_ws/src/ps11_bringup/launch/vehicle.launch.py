@@ -4,6 +4,7 @@ Starts navigation sensor models, waypoint follower, perception chain, and schedu
 """
 
 import os
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
@@ -85,23 +86,27 @@ def generate_launch_description() -> LaunchDescription:
         package="ps11_telemetry",
         executable="scheduler",
         name="scheduler",
-        parameters=[{
-            "use_sim_time": use_sim_time,
-            "policy": policy,
-            "profile": link_profile,
-        }],
+        parameters=[
+            {
+                "use_sim_time": use_sim_time,
+                "policy": policy,
+                "profile": link_profile,
+            }
+        ],
         output="screen",
     )
 
-    return LaunchDescription([
-        use_sim_time_arg,
-        policy_arg,
-        link_profile_arg,
-        scenario_arg,
-        nav_launch,
-        detector_node,
-        tracker_node,
-        geolocator_node,
-        contact_db_node,
-        scheduler_node,
-    ])
+    return LaunchDescription(
+        [
+            use_sim_time_arg,
+            policy_arg,
+            link_profile_arg,
+            scenario_arg,
+            nav_launch,
+            detector_node,
+            tracker_node,
+            geolocator_node,
+            contact_db_node,
+            scheduler_node,
+        ]
+    )

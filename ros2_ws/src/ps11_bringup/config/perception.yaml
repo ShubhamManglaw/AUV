@@ -1,35 +1,36 @@
-# Perception pipeline parameters (§10)
-
 underwater_effect:
-  # Attenuation: red attenuates fastest
-  beta_rgb: [0.3, 0.1, 0.05]
-  backscatter_rgb: [0.05, 0.15, 0.2]
-  blur_sigma_px: 1.0
-  noise_sigma: 0.02
-
+  beta_rgb:
+  - 0.15
+  - 0.05
+  - 0.02
+  backscatter_rgb:
+  - 0.01
+  - 0.03
+  - 0.04
+  blur_sigma_px: 0.2
+  noise_sigma: 0.005
 detector:
-  model_path: "ml/weights/best_v2.pt"
+  model_path: ml/weights/best_v2.pt
   imgsz: 640
-  conf_threshold: 0.25
+  conf_threshold: 0.35
   iou_threshold: 0.5
-  device: "cuda:0"
-  max_rate_hz: 5.0  # ASSUMPTION: detector rate capped to Jetson-measured rate (or 5 Hz pending benchmark)
-  camera_rate_hz: 5.0  # Measured reliable sensor rate (>= 5 Hz in rclpy SensorDataQoS, 10 Hz nominal)
-  annotate_rate_hz: 5.0
-
+  device: cuda:0
+  nominal_rate_hz: 10.0
+  boosted_rate_hz: 30.0
+  boost_hold_s: 3.0
+  max_rate_hz: 30.0
+  camera_rate_hz: 30.0
+  annotate_rate_hz: 10.0
 tracker:
-  # ByteTrack parameters
-  min_hits: 3
-  min_mean_conf: 0.3
-  track_activation_threshold: 0.25
+  min_hits: 5
+  min_mean_conf: 0.4
+  track_activation_threshold: 0.35
   lost_track_buffer: 30
   minimum_matching_threshold: 0.8
-
 geolocator:
   max_range_m: 12.0
   sigma_px: 8.0
   sigma_alt_m: 0.1
-
 contact_db:
   gate_m: 2.0
   sigma_floor_m: 0.3

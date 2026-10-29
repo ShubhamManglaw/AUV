@@ -175,34 +175,9 @@ def generate_procedural_sand_tile(
     """
     rng = np.random.default_rng(seed)
 
-    # World coordinate grid
-    # Row 0 corresponds to tile_y_max, Row height-1 to tile_y_min
-    x_coords = np.linspace(
-        tile_x_min, tile_x_max, width_px, endpoint=False, dtype=np.float32
-    )
-    y_coords = np.linspace(
-        tile_y_max, tile_y_min, height_px, endpoint=False, dtype=np.float32
-    )
-    xx, yy = np.meshgrid(x_coords, y_coords)
-
-    # 1. Sand ripple waves: wavelength ~1.1 m, angle 0.28 rad
-    wavelength = 1.10
-    theta = 0.28
-    ripple_phase = (2.0 * math.pi / wavelength) * (
-        xx * math.cos(theta) + yy * math.sin(theta)
-    )
-    # Asymmetric underwater sand ripple shape (subtle waves)
-    ripples = np.sin(ripple_phase) + 0.3 * np.sin(2.0 * ripple_phase + 0.4)
-    ripple_intensity = ripples * 4.0  # gentle ripple gradient
-
-    # 2. Large scale dune variation using downscaled smoothed noise
-    small_size = 64
-    dune_noise = rng.normal(0.0, 1.0, (small_size, small_size)).astype(np.float32)
-    dunes = cv2.resize(dune_noise, (width_px, height_px), interpolation=cv2.INTER_CUBIC)
-    dune_intensity = dunes * 5.0
-
-    # 3. Fine grain noise (subtle grain without dark urchin-like clusters)
-    grain = rng.uniform(-2.0, 2.0, (height_px, width_px)).astype(np.float32)
+    # Even, uniform seabed base without ripple shadows or dune gradients
+    # Fine grain noise: subtle minimal grain
+    grain = rng.uniform(-0.5, 0.5, (height_px, width_px)).astype(np.float32)
 
     # Base sand RGB color: brighter, warmer sand for high decal silhouette contrast
     base_r = 210.0
@@ -210,7 +185,7 @@ def generate_procedural_sand_tile(
     base_b = 160.0
 
     # Composite luminance modulation
-    delta = ripple_intensity + dune_intensity + grain
+    delta = grain
 
     img_r = np.clip(base_r + delta * 1.0, 0, 255).astype(np.uint8)
     img_g = np.clip(base_g + delta * 0.95, 0, 255).astype(np.uint8)
@@ -631,7 +606,9 @@ def generate_seabed(
                 fg_rgb = cut_slice[:, :, :3].astype(np.float32)
                 bg_rgb = tile_rgb[dst_y0:dst_y1, dst_x0:dst_x1].astype(np.float32)
 
-                blended = fg_rgb * alpha + bg_rgb * (1.0 - alpha)
+                # Boost alpha opacity so faint/translucent debris stands out cleanly
+                alpha_boosted = np.clip(np.power(alpha, 0.75) * 1.25, 0.0, 1.0)
+                blended = fg_rgb * alpha_boosted + bg_rgb * (1.0 - alpha_boosted)
                 tile_rgb[dst_y0:dst_y1, dst_x0:dst_x1] = np.clip(
                     blended, 0, 255
                 ).astype(np.uint8)

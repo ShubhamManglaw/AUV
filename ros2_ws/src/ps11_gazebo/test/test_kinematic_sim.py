@@ -144,7 +144,7 @@ def test_urdf_kinematic_mode():
 
     cam = sensors.get("camera", sensors.get("rgbd_camera"))
     assert cam is not None
-    assert float(cam.find("update_rate").text) == 10.0
+    assert float(cam.find("update_rate").text) >= 10.0
 
     imu = sensors["imu_sensor"]
     assert imu.attrib.get("type") == "imu"

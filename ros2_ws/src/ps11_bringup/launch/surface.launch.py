@@ -22,14 +22,18 @@ def generate_launch_description() -> LaunchDescription:
         package="ps11_telemetry",
         executable="surface_decoder",
         name="surface_decoder",
-        parameters=[{
-            "use_sim_time": use_sim_time,
-            "frame_id": "map",
-        }],
+        parameters=[
+            {
+                "use_sim_time": use_sim_time,
+                "frame_id": "map",
+            }
+        ],
         output="screen",
     )
 
-    return LaunchDescription([
-        use_sim_time_arg,
-        surface_decoder_node,
-    ])
+    return LaunchDescription(
+        [
+            use_sim_time_arg,
+            surface_decoder_node,
+        ]
+    )

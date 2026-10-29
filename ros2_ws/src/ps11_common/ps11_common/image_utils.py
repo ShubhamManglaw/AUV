@@ -165,4 +165,3 @@ def compressed_image_to_numpy(
         raise ValueError(
             f"Unsupported target_encoding '{target_encoding}'. Use 'rgb8' or 'bgr8'."
         )
-

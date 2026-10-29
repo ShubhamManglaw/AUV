@@ -118,4 +118,3 @@ def test_roundtrip_compressed_image_bgr() -> None:
     recovered = compressed_image_to_numpy(comp_msg, target_encoding="bgr8")
     assert recovered.shape == original.shape
     np.testing.assert_allclose(recovered, original, atol=2.0)
-

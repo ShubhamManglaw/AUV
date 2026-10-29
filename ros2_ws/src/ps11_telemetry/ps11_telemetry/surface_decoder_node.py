@@ -115,6 +115,17 @@ class SurfaceDecoderNode(Node):
         self._publish_contacts()
         self._publish_markers()
 
+        if msg_type == "contact":
+            for c in self._tracker.contacts:
+                try:
+                    c_name = self._class_db.id_to_name(c.class_id)
+                except KeyError:
+                    c_name = f"unknown_{c.class_id}"
+                self.get_logger().info(
+                    f"SURFACE CONTACT: Contact #{c.contact_id} -> class {c.class_id} [{c_name}] "
+                    f"at ({c.x_m:.1f}m, {c.y_m:.1f}m, depth: {c.depth_m:.1f}m) | conf: {c.confidence:.2f} | sigma: ±{c.sigma_xy_m:.1f}m"
+                )
+
         if msg_type == "heartbeat":
             self._publish_track()
 
@@ -199,9 +210,9 @@ class SurfaceDecoderNode(Node):
             m_sphere.action = Marker.ADD
             m_sphere.pose.position = pos
             m_sphere.pose.orientation.w = 1.0
-            m_sphere.scale.x = 0.8
-            m_sphere.scale.y = 0.8
-            m_sphere.scale.z = 0.8
+            m_sphere.scale.x = 1.4
+            m_sphere.scale.y = 1.4
+            m_sphere.scale.z = 1.4
             m_sphere.color = color
             ma.markers.append(m_sphere)
 
@@ -215,10 +226,10 @@ class SurfaceDecoderNode(Node):
             m_text.pose.position = Point(
                 x=float(c.x_m),
                 y=float(c.y_m),
-                z=-float(c.depth_m) + 0.8,
+                z=-float(c.depth_m) + 1.5,
             )
             m_text.pose.orientation.w = 1.0
-            m_text.scale.z = 0.4  # Text height
+            m_text.scale.z = 1.2  # Text height
             m_text.text = (
                 f"{class_name} #{c.contact_id} {c.confidence:.2f} ({age_s:.0f}s ago)"
             )
@@ -255,9 +266,9 @@ class SurfaceDecoderNode(Node):
                 z=-float(latest_hb.depth_m),
             )
             m_arrow.pose.orientation = heading_to_quaternion(latest_hb.heading_deg)
-            m_arrow.scale.x = 2.0  # Arrow shaft length
-            m_arrow.scale.y = 0.4  # Arrow width
-            m_arrow.scale.z = 0.4  # Arrow height
+            m_arrow.scale.x = 3.0  # Arrow shaft length
+            m_arrow.scale.y = 0.8  # Arrow width
+            m_arrow.scale.z = 0.8  # Arrow height
             m_arrow.color = ColorRGBA(r=1.0, g=0.8, b=0.0, a=1.0)
             ma.markers.append(m_arrow)
 

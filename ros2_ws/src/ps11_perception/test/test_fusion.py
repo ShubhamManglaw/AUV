@@ -160,3 +160,51 @@ def test_sigma_never_below_floor() -> None:
     assert c.sigma_xy_m == 0.3, (
         f"Expected sigma clamped to floor 0.3, got {c.sigma_xy_m}"
     )
+
+
+def test_create_markers_with_contacts() -> None:
+    """Ensure marker creation in ContactDbNode succeeds for all contacts and unknown classes."""
+    from builtin_interfaces.msg import Time
+    from ps11_common.classes import ClassDatabase
+    from ps11_perception.contact_db_node import ContactDbNode
+
+    class DummyNode:
+        def __init__(self) -> None:
+            self.class_db = ClassDatabase()
+            self.class_colors = {
+                0: (1.0, 0.2, 0.2, 0.8),
+                1: (1.0, 0.65, 0.0, 0.8),
+                2: (0.7, 0.1, 0.9, 0.8),
+                3: (0.1, 0.8, 0.9, 0.8),
+            }
+
+        _create_markers = ContactDbNode._create_markers
+
+    dummy = DummyNode()
+    db = ContactDatabase()
+    db.update(
+        track_id=1,
+        class_id=1,
+        confidence=0.9,
+        x=5.0,
+        y=5.0,
+        z=-15.0,
+        sigma_xy_m=0.5,
+        stamp=1.0,
+    )
+    db.update(
+        track_id=2,
+        class_id=99,
+        confidence=0.7,
+        x=10.0,
+        y=10.0,
+        z=-15.0,
+        sigma_xy_m=0.5,
+        stamp=1.0,
+    )
+    markers = dummy._create_markers(db.contacts, Time(sec=1, nanosec=0))
+    # 3 markers per contact: sphere, cylinder, text
+    assert len(markers.markers) == 6
+    labels = [m.text for m in markers.markers if m.text]
+    assert any("starfish #0" in lbl for lbl in labels)
+    assert any("class_99 #1" in lbl for lbl in labels)

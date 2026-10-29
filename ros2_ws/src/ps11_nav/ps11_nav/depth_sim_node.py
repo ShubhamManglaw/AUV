@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from nav_msgs.msg import Odometry
 import numpy as np
+import rclpy
+from nav_msgs.msg import Odometry
 from ps11_common.params import load_yaml
 from ps11_interfaces.msg import Depth
-import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 

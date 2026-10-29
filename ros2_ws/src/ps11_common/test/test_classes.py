@@ -26,9 +26,11 @@ def test_classes_lookup() -> None:
 
     sea_urchin = db.get_by_id(2)
     assert sea_urchin.name == "sea_urchin"
+    assert db.id_to_name(2) == "sea_urchin"
 
     scallop = db.get_by_name("scallop")
     assert scallop.id == 3
+    assert db.id_to_name(3) == "scallop"
 
 
 def test_unknown_id_raises_error() -> None:

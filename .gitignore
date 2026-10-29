@@ -28,6 +28,9 @@ ml/results/*/
 ros2_ws/src/ps11_gazebo/models/seabed_tile_*/
 
 # Device-specific and large artefacts (keep in the shared drive)
+results/run_*
+results/bench/*.log
+results/bench/crops/
 *.engine
 *.mcap
 *.db3
